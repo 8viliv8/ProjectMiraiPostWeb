@@ -1,0 +1,9 @@
+{
+  "name": "Project Mirai Post",
+  "short_name": "Mirai Post",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#222222",
+  "lang": "ja"
+}
