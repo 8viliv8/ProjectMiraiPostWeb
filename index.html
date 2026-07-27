@@ -7,6 +7,7 @@
 <title>Project Mirai Post</title>
 
 <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
 
 </head>
 
@@ -20,28 +21,34 @@
 世界へ断片を投函する場所
 </p>
 
-
-<input id="title"
-       placeholder="タイトル">
-
+<div id="authArea">
+  <button id="btnSignIn">🔒 ログインして投函する</button>
+  <div id="authWho" style="display:none"></div>
+</div>
 
 <textarea id="body"
-          placeholder="思いついたことを書く"></textarea>
+          placeholder="思いついたことを、そのまま書く。整った文章でなくて大丈夫です。"></textarea>
 
-
-<button onclick="createPost()">
-投函
-</button>
-
+<button id="btnPost" disabled>投函</button>
 
 <p id="status"></p>
 
+<div id="resultCard" style="display:none"></div>
 
 </div>
 
+<script type="module" src="app.js"></script>
+<script>
 
-<script src="app.js"></script>
+if ("serviceWorker" in navigator) {
 
+navigator.serviceWorker.register(
+"service-worker.js"
+);
+
+}
+
+</script>
 </body>
 
 </html>
