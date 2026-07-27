@@ -7,7 +7,7 @@
    ========================================================= */
 import { initializeApp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFunctions, httpsCallable }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js';
@@ -54,8 +54,16 @@ function showResult(item){
 }
 
 btnSignIn.addEventListener('click', () => {
-  signInWithPopup(auth, new GoogleAuthProvider())
-    .catch(e => setStatus('ログインに失敗しました: ' + e.message));
+  // PWA(ホーム画面に追加した状態)ではポップアップ式ログインがGoogleにブロックされるため、
+  // ページ遷移(リダイレクト)方式を使う。
+  setStatus('Googleのログイン画面に移動します…');
+  signInWithRedirect(auth, new GoogleAuthProvider());
+});
+
+// リダイレクトで戻ってきた直後、ログインが失敗していればここでエラーが分かる
+getRedirectResult(auth).catch(e => {
+  console.error(e);
+  setStatus('ログインに失敗しました: ' + (e.message || e));
 });
 
 authWho.addEventListener('click', () => {
