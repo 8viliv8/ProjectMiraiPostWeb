@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>H゜me</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -166,6 +168,30 @@
   .qmenu div:hover{background:var(--bg)}
   .qmenu i{width:6px;height:6px;border-radius:50%}
 
+  /* ---------- カスタムダイアログ（prompt/confirmの置き換え） ---------- */
+  #dialogOverlay{
+    position:fixed;inset:0;background:rgba(251,250,248,.75);
+    display:none;align-items:center;justify-content:center;z-index:60;
+    backdrop-filter:blur(2px);
+  }
+  #dialogOverlay.open{display:flex}
+  #dialogBox{
+    width:min(320px,88vw);background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:20px;box-shadow:0 30px 70px -20px rgba(0,0,0,.25);
+  }
+  #dialogMessage{font-size:13px;color:var(--ink);line-height:1.7;margin-bottom:14px}
+  #dialogInput{
+    width:100%;border:1px solid var(--border);border-radius:6px;
+    padding:8px 10px;font-family:var(--ui);font-size:13px;color:var(--ink);
+    outline:none;margin-bottom:14px;background:#fff;
+  }
+  #dialogActions{display:flex;justify-content:flex-end;gap:8px}
+  #dialogActions button{
+    font-family:var(--mono);font-size:11px;color:var(--dim);background:none;
+    border:1px solid var(--border);border-radius:6px;padding:6px 14px;cursor:pointer;
+  }
+  #dialogOk{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important}
+
   #empty{color:var(--dim);font-size:12px;text-align:center;padding:60px 0}
 
   .card{cursor:pointer}
@@ -275,7 +301,7 @@
     </div>
     <div id="poolsRow">
       <div id="categories"></div>
-      <button id="btnAddCategory">＋ <svg class="tank-icon" width="15" height="13" viewBox="0 0 28 24" fill="none"><rect x="2" y="4" width="24" height="18" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 9c3-2 6 2 9 0s6 2 9 0s3-1 6 0" stroke="currentColor" stroke-width="1.2" opacity="0.6"/></svg> 水槽</button>
+      <button id="btnAddCategory">＋ <svg class="tank-icon" width="15" height="13" viewBox="0 0 28 24" fill="none"><rect x="2" y="4" width="24" height="18" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 9c3-2 6 2 9 0s6 2 9 0s3-1 6 0" stroke="currentColor" stroke-width="1.2" opacity="0.6"/></svg></button>
     </div>
   </div>
 
@@ -289,10 +315,21 @@
 
 <div class="qmenu" id="qmenu"></div>
 
+<div id="dialogOverlay">
+  <div id="dialogBox">
+    <div id="dialogMessage"></div>
+    <input type="text" id="dialogInput" style="display:none">
+    <div id="dialogActions">
+      <button id="dialogCancel">キャンセル</button>
+      <button id="dialogOk">OK</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, setDoc, getDoc }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
@@ -328,15 +365,44 @@ const Q_META = {
 const Q_ORDER = ['idea','nichijo','kaji','shigoto'];
 
 const $ = (id) => document.getElementById(id);
+
+/* ---------- カスタムダイアログ（見た目をアプリに統一） ---------- */
+const dialogOverlay = $('dialogOverlay'), dialogMessage = $('dialogMessage'),
+      dialogInput = $('dialogInput'), dialogOk = $('dialogOk'), dialogCancel = $('dialogCancel');
+
+function showDialog({ message, withInput = false, defaultValue = '' }){
+  return new Promise((resolve) => {
+    dialogMessage.textContent = message;
+    dialogInput.style.display = withInput ? 'block' : 'none';
+    dialogInput.value = defaultValue;
+    dialogOverlay.classList.add('open');
+    if(withInput) setTimeout(() => dialogInput.focus(), 50);
+
+    function cleanup(result){
+      dialogOverlay.classList.remove('open');
+      dialogOk.removeEventListener('click', onOk);
+      dialogCancel.removeEventListener('click', onCancel);
+      dialogInput.removeEventListener('keydown', onKey);
+      resolve(result);
+    }
+    function onOk(){ cleanup(withInput ? dialogInput.value.trim() : true); }
+    function onCancel(){ cleanup(withInput ? null : false); }
+    function onKey(e){ if(e.key === 'Enter'){ e.preventDefault(); onOk(); } }
+    dialogOk.addEventListener('click', onOk);
+    dialogCancel.addEventListener('click', onCancel);
+    dialogInput.addEventListener('keydown', onKey);
+  });
+}
+function customConfirm(message){ return showDialog({ message }); }
+function customPrompt(message, defaultValue=''){ return showDialog({ message, withInput:true, defaultValue }); }
 const listEl = $('list'), emptyEl = $('empty');
 const noteCircleEl = $('noteCircle');
 const btnSignIn = $('btnSignIn'), authWho = $('authWho');
 const memoInput = $('memoInput');
 const qmenu = $('qmenu');
 
-btnSignIn.addEventListener('click', () => signInWithRedirect(auth, new GoogleAuthProvider()));
-authWho.addEventListener('click', () => { if(confirm('ログアウトしますか？')) signOut(auth); });
-getRedirectResult(auth).catch(e => console.error('ログインエラー:', e));
+btnSignIn.addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => console.error('ログインエラー:', e)));
+authWho.addEventListener('click', async () => { if(await customConfirm('ログアウトしますか？')) signOut(auth); });
 
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
@@ -777,9 +843,9 @@ function exitEditMode(){
   autoGrow();
 }
 
-cardDeleteEl.addEventListener('click', () => {
+cardDeleteEl.addEventListener('click', async () => {
   if(!editingNoteId) return;
-  if(!confirm('このメモを削除しますか？')) return;
+  if(!await customConfirm('このメモを削除しますか？')) return;
   notes = notes.filter(n => n.id !== editingNoteId);
   requestSave();
   exitEditMode();
@@ -843,8 +909,8 @@ function renderClassify(){
     const dotsWrap = box.querySelector('.dots');
     notes.filter(n => n.categoryId === cat.id).forEach(n => dotsWrap.appendChild(makeZDot(n)));
     wireDropzone(box, cat.id);
-    box.querySelector('.catDelete').addEventListener('click', () => {
-      if(!confirm(`「${cat.name}」を削除しますか？（中のメモは未分類プールに戻ります）`)) return;
+    box.querySelector('.catDelete').addEventListener('click', async () => {
+      if(!await customConfirm(`「${cat.name}」を削除しますか？（中のメモは未分類プールに戻ります）`)) return;
       notes.forEach(n => { if(n.categoryId === cat.id) n.categoryId = null; });
       categories = categories.filter(c => c.id !== cat.id);
       requestSave();
@@ -854,8 +920,8 @@ function renderClassify(){
   });
 }
 
-$('btnAddCategory').addEventListener('click', () => {
-  const name = prompt('新しいカテゴリの名前は？');
+$('btnAddCategory').addEventListener('click', async () => {
+  const name = await customPrompt('新しい水槽の名前は？');
   if(!name || !name.trim()) return;
   categories.push({ id: 'cat_' + Date.now().toString(36), name: name.trim() });
   requestSave();

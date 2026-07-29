@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>H゜me</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -118,6 +120,30 @@
   #notify button.adopt{color:#fff;background:var(--accent);border-color:var(--accent)}
   #notify button:hover{opacity:.85}
 
+  /* ---------- カスタムダイアログ（prompt/confirmの置き換え） ---------- */
+  #dialogOverlay{
+    position:fixed;inset:0;background:rgba(251,250,248,.75);
+    display:none;align-items:center;justify-content:center;z-index:60;
+    backdrop-filter:blur(2px);
+  }
+  #dialogOverlay.open{display:flex}
+  #dialogBox{
+    width:min(320px,88vw);background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:20px;box-shadow:0 30px 70px -20px rgba(0,0,0,.25);
+  }
+  #dialogMessage{font-size:13px;color:var(--ink);line-height:1.7;margin-bottom:14px}
+  #dialogInput{
+    width:100%;border:1px solid var(--border);border-radius:6px;
+    padding:8px 10px;font-family:var(--ui);font-size:13px;color:var(--ink);
+    outline:none;margin-bottom:14px;background:#fff;
+  }
+  #dialogActions{display:flex;justify-content:flex-end;gap:8px}
+  #dialogActions button{
+    font-family:var(--mono);font-size:11px;color:var(--dim);background:none;
+    border:1px solid var(--border);border-radius:6px;padding:6px 14px;cursor:pointer;
+  }
+  #dialogOk{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important}
+
   /* ---------- プール凡例（左下） ---------- */
   #legend{
     left:20px;bottom:20px;
@@ -194,6 +220,17 @@
   </div>
 </div>
 
+<div id="dialogOverlay">
+  <div id="dialogBox">
+    <div id="dialogMessage"></div>
+    <input type="text" id="dialogInput" style="display:none">
+    <div id="dialogActions">
+      <button id="dialogCancel">キャンセル</button>
+      <button id="dialogOk">OK</button>
+    </div>
+  </div>
+</div>
+
 <div id="notify">
   <div class="bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
   <div class="body">
@@ -209,7 +246,7 @@
 <script type="module">
 import { initializeApp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, setDoc, getDoc }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
@@ -243,7 +280,7 @@ window.OrbitCloud = {
       return true;
     }catch(e){ console.error('保存エラー:', e); return false; }
   },
-  signIn: () => signInWithRedirect(auth, new GoogleAuthProvider()),
+  signIn: () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => console.error('ログインエラー:', e)),
   signOut: () => signOut(auth),
 };
 
@@ -251,7 +288,6 @@ onAuthStateChanged(auth, (user) => {
   currentUser = user;
   window.dispatchEvent(new CustomEvent('orbit-auth', { detail:{ user } }));
 });
-getRedirectResult(auth).catch(e => console.error('ログインエラー:', e));
 </script>
 
 <script>
@@ -263,6 +299,36 @@ getRedirectResult(auth).catch(e => console.error('ログインエラー:', e));
    ========================================================= */
 
 const $ = (id) => document.getElementById(id);
+
+/* ---------- カスタムダイアログ（見た目をアプリに統一） ---------- */
+const dialogOverlay = $('dialogOverlay'), dialogMessage = $('dialogMessage'),
+      dialogInput = $('dialogInput'), dialogOk = $('dialogOk'), dialogCancel = $('dialogCancel');
+
+function showDialog({ message, withInput = false, defaultValue = '' }){
+  return new Promise((resolve) => {
+    dialogMessage.textContent = message;
+    dialogInput.style.display = withInput ? 'block' : 'none';
+    dialogInput.value = defaultValue;
+    dialogOverlay.classList.add('open');
+    if(withInput) setTimeout(() => dialogInput.focus(), 50);
+
+    function cleanup(result){
+      dialogOverlay.classList.remove('open');
+      dialogOk.removeEventListener('click', onOk);
+      dialogCancel.removeEventListener('click', onCancel);
+      dialogInput.removeEventListener('keydown', onKey);
+      resolve(result);
+    }
+    function onOk(){ cleanup(withInput ? dialogInput.value.trim() : true); }
+    function onCancel(){ cleanup(withInput ? null : false); }
+    function onKey(e){ if(e.key === 'Enter'){ e.preventDefault(); onOk(); } }
+    dialogOk.addEventListener('click', onOk);
+    dialogCancel.addEventListener('click', onCancel);
+    dialogInput.addEventListener('keydown', onKey);
+  });
+}
+function customConfirm(message){ return showDialog({ message }); }
+function customPrompt(message, defaultValue=''){ return showDialog({ message, withInput:true, defaultValue }); }
 const cv = $('cv'), ctx = cv.getContext('2d');
 let W, H, DPR;
 function resize(){
@@ -769,9 +835,9 @@ function closeCard(save){
 }
 $('btnCardClose').addEventListener('click', () => closeCard(true));
 cardOverlay.addEventListener('click', (e) => { if(e.target===cardOverlay) closeCard(true); });
-$('cardDelete').addEventListener('click', () => {
+$('cardDelete').addEventListener('click', async () => {
   if(!editingId) return;
-  if(!confirm('このメモを削除しますか？')) return;
+  if(!await customConfirm('このメモを削除しますか？')) return;
   notes = notes.filter(n=>n.id!==editingId);
   requestSave();
   closeCard(false);
@@ -839,7 +905,7 @@ function assignInitialPositions(){
 
 const btnSignIn = $('btnSignIn'), authWho = $('authWho');
 btnSignIn.addEventListener('click', () => window.OrbitCloud.signIn());
-authWho.addEventListener('click', () => { if(confirm('ログアウトしますか？')) window.OrbitCloud.signOut(); });
+authWho.addEventListener('click', async () => { if(await customConfirm('ログアウトしますか？')) window.OrbitCloud.signOut(); });
 
 window.addEventListener('orbit-auth', async (e) => {
   const user = e.detail.user;
