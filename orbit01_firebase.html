@@ -153,10 +153,15 @@
   #dialogOk{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important}
 
   /* ---------- プール凡例（左下） ---------- */
-  #legend{
+  #bottomLeftStack{
     left:20px;bottom:20px;
+    display:flex;flex-direction:column;gap:14px;
+    max-height:calc(100vh - 40px);
+  }
+  #legend{
     font-family:var(--mono);font-size:11px;color:var(--ink);
     display:flex;flex-direction:column;gap:6px;
+    max-height:40vh;overflow-y:auto;
   }
   #legend .item{display:flex;align-items:center;gap:8px}
   #legend .sw{width:9px;height:9px;border-radius:50%;flex:none}
@@ -173,7 +178,7 @@
   #todayPanel .flabel{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:#B4B0A6;margin-bottom:4px}
 
   /* ---------- 背景画像のカスタマイズ ---------- */
-  #bgControl{left:20px;bottom:130px;font-family:var(--mono);font-size:10px;color:var(--dim);display:flex;gap:10px;align-items:center}
+  #bgControl{font-family:var(--mono);font-size:10px;color:var(--dim);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   #bgControl label{cursor:pointer;border:1px solid var(--border);border-radius:6px;padding:5px 10px;background:var(--surface)}
   #bgControl label:hover{border-color:var(--accent);color:var(--ink)}
   #bgControl a{color:var(--dim);cursor:pointer}
@@ -220,13 +225,14 @@
 </div>
 <div id="status"></div>
 
-<div class="hud" id="legend"></div>
-
-<div class="hud" id="bgControl">
-  <label for="bgFile">背景画像</label>
-  <input type="file" id="bgFile" accept="image/*" style="display:none">
-  <div id="bgPresets"></div>
-  <a id="bgReset">リセット</a>
+<div class="hud" id="bottomLeftStack">
+  <div id="bgControl">
+    <label for="bgFile">背景画像</label>
+    <input type="file" id="bgFile" accept="image/*" style="display:none">
+    <div id="bgPresets"></div>
+    <a id="bgReset">リセット</a>
+  </div>
+  <div id="legend"></div>
 </div>
 
 <div id="todayPanel"></div>
