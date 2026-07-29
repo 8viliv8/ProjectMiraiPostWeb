@@ -9,9 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#F4F3EF;
-    --surface:#FAF9F6;
-    --border:#E3E0D8;
+    --bg:#FBFAF8;
+    --surface:#FFFFFF;
+    --border:#EAE7E1;
     --ink:#2C2E31;
     --dim:#8E8B82;
     --accent:#7A8B83;
@@ -20,6 +20,7 @@
     --ui:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
   }
   *{box-sizing:border-box}
+  button, input, textarea, label{-webkit-appearance:none;appearance:none;font:inherit}
   html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--ui)}
   canvas{display:block;position:fixed;inset:0;cursor:grab}
   canvas.dragging{cursor:grabbing}
@@ -27,12 +28,23 @@
   .hud{position:fixed;z-index:10}
   #title{top:18px;left:20px;font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.05em}
   #title a{color:var(--dim);text-decoration:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;margin-left:10px;font-size:11px}
+  .bubble-icon{vertical-align:-2px;color:var(--dim)}
+  .fish-icon{vertical-align:-1px;color:var(--dim);margin-left:6px}
+  .tankFrame{
+    display:inline-block;border:1px solid var(--border);border-radius:3px;
+    padding:3px 10px;
+  }
   #title a:hover{color:var(--ink);border-color:var(--accent);background:var(--surface)}
 
   #authWidget{top:18px;right:20px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--dim)}
   #authWidget button{font-family:var(--mono);font-size:11px;color:var(--dim);background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer}
   #authWidget button:hover{border-color:var(--accent);color:var(--ink)}
-  #authWho{cursor:pointer}
+  #authWho{
+    cursor:pointer;display:flex;align-items:center;gap:6px;
+    background:var(--surface);border:1px solid var(--accent);border-radius:999px;
+    padding:5px 12px;color:var(--ink);
+  }
+  #authWho::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block}
   #status{position:fixed;top:50px;right:20px;z-index:10;font-family:var(--mono);font-size:10px;color:var(--dim)}
 
   #hoverLabel{
@@ -45,7 +57,7 @@
 
   /* ---------- カード（memoアプリと共通の見た目） ---------- */
   #cardOverlay{
-    position:fixed;inset:0;background:rgba(244,243,239,.72);
+    position:fixed;inset:0;background:rgba(251,250,248,.72);
     display:none;align-items:center;justify-content:center;z-index:40;
     backdrop-filter:blur(2px);
   }
@@ -132,14 +144,20 @@
   #bgControl label:hover{border-color:var(--accent);color:var(--ink)}
   #bgControl a{color:var(--dim);cursor:pointer}
   #bgControl a:hover{color:var(--ink)}
+  #bgPresets{display:flex;gap:6px}
+  #bgPresets .preset{
+    width:20px;height:20px;border-radius:4px;cursor:pointer;
+    border:1px solid var(--border);background-size:cover;background-position:center;
+  }
+  #bgPresets .preset:hover{border-color:var(--accent)}
 </style>
 </head>
 <body>
 
-<div class="hud" id="title">H゜me<a id="memoLink" href="memo_home.html">← memoへ</a></div>
+<div class="hud" id="title"><span class="tankFrame"><svg class="bubble-icon" width="9" height="9" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.3"/><path d="M6 6.5c-0.9 0.9-1.3 1.9-1 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.55"/></svg>.H゜<svg class="fish-icon" width="16" height="10" viewBox="0 0 32 20" fill="none"><path d="M4 10c4-6 16-6 20 0-4 6-16 6-20 0z" stroke="currentColor" stroke-width="1.4"/><path d="M24 10l6-4v8l-6-4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="9" cy="9" r="0.9" fill="currentColor"/></svg>me</span><a id="memoLink" href="index.html">← <svg class="bubble-icon" width="18" height="16" viewBox="0 0 34 26" fill="none"><circle cx="6" cy="19" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M4.2 17c-0.5 0.5-0.7 1.1-0.5 1.7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><circle cx="24" cy="8" r="8.5" stroke="currentColor" stroke-width="1.3"/><path d="M19 4.5c-1 1-1.4 2.1-1.1 3.3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.55"/></svg></a></div>
 
 <div class="hud" id="authWidget">
-  <button id="btnSignIn">🔒 ログイン</button>
+  <button id="btnSignIn">ログイン</button>
   <span id="authWho" style="display:none"></span>
 </div>
 <div id="status"></div>
@@ -147,8 +165,9 @@
 <div class="hud" id="legend"></div>
 
 <div class="hud" id="bgControl">
-  <label for="bgFile">🖼 背景画像</label>
+  <label for="bgFile">背景画像</label>
   <input type="file" id="bgFile" accept="image/*" style="display:none">
+  <div id="bgPresets"></div>
   <a id="bgReset">リセット</a>
 </div>
 
@@ -167,7 +186,7 @@
       <textarea id="cardMemo" rows="2" placeholder="メモ"></textarea>
       <div id="cardFields"></div>
       <div class="sendRow">
-        <button id="btnCopyMd">📋 コピー</button>
+        <button id="btnCopyMd">コピー</button>
         <button id="btnDownloadMd">⬇ .mdダウンロード</button>
       </div>
     </div>
@@ -463,7 +482,42 @@ cv.addEventListener('touchend', () => { touchMode = null; });
 
 /* ---------- 背景画像（このブラウザだけに保存。Firebaseとは同期しない） ---------- */
 let bgImage = null;
+
+// デフォルト背景（Vilさんが用意する画像ファイルへのパス）。
+// 実際のファイルを、このHTMLと同じ場所の backgrounds/ フォルダに
+// bg1.jpg, bg2.jpg, bg3.jpg という名前で置くと、ここに反映される。
+const BG_PRESETS = ['backgrounds/bg1.jpg', 'backgrounds/bg2.jpg', 'backgrounds/bg3.jpg'];
+
+function loadBgFromUrl(url, persist){
+  const img = new Image();
+  img.onload = () => {
+    bgImage = img;
+    if(persist){
+      try{ localStorage.setItem('orbitBgPreset', url); localStorage.removeItem('orbitBgImage'); }
+      catch(err){}
+    }
+  };
+  img.onerror = () => console.warn('背景画像が見つかりません:', url);
+  img.src = url;
+}
+
+function renderBgPresets(){
+  const wrap = $('bgPresets');
+  wrap.innerHTML = '';
+  BG_PRESETS.forEach((url) => {
+    const el = document.createElement('div');
+    el.className = 'preset';
+    el.style.backgroundImage = `url(${url})`;
+    el.title = url;
+    el.addEventListener('click', () => loadBgFromUrl(url, true));
+    wrap.appendChild(el);
+  });
+}
+renderBgPresets();
+
 function loadBgFromStorage(){
+  const presetUrl = localStorage.getItem('orbitBgPreset');
+  if(presetUrl){ loadBgFromUrl(presetUrl, false); return; }
   const dataUrl = localStorage.getItem('orbitBgImage');
   if(!dataUrl) return;
   const img = new Image();
@@ -477,7 +531,10 @@ $('bgFile').addEventListener('change', (e) => {
   if(!file) return;
   const reader = new FileReader();
   reader.onload = () => {
-    try{ localStorage.setItem('orbitBgImage', reader.result); }
+    try{
+      localStorage.setItem('orbitBgImage', reader.result);
+      localStorage.removeItem('orbitBgPreset');
+    }
     catch(err){ console.warn('背景画像の保存に失敗（サイズが大きすぎる可能性）:', err); }
     const img = new Image();
     img.onload = () => { bgImage = img; };
@@ -488,17 +545,18 @@ $('bgFile').addEventListener('change', (e) => {
 $('bgReset').addEventListener('click', () => {
   bgImage = null;
   localStorage.removeItem('orbitBgImage');
+  localStorage.removeItem('orbitBgPreset');
 });
 
 function drawBackground(){
-  ctx.fillStyle = '#F4F3EF';
+  ctx.fillStyle = '#FBFAF8';
   ctx.fillRect(0,0,W,H);
   if(bgImage){
     const scale = Math.max(W/bgImage.width, H/bgImage.height);
     const iw = bgImage.width*scale, ih = bgImage.height*scale;
     ctx.drawImage(bgImage, (W-iw)/2, (H-ih)/2, iw, ih);
     // 写真の上に薄く白を重ね、点や線が読みやすいようにする
-    ctx.fillStyle = 'rgba(244,243,239,0.78)';
+    ctx.fillStyle = 'rgba(251,250,248,0.78)';
     ctx.fillRect(0,0,W,H);
   }
 }
@@ -733,7 +791,7 @@ $('btnCopyMd').addEventListener('click', async () => {
   try{
     await navigator.clipboard.writeText(noteToMarkdown(note));
     $('btnCopyMd').textContent = 'コピーしました ✓';
-    setTimeout(()=> $('btnCopyMd').textContent = '📋 コピー', 1500);
+    setTimeout(()=> $('btnCopyMd').textContent = 'コピー', 1500);
   }catch(e){ alert('コピーに失敗しました。'); }
 });
 $('btnDownloadMd').addEventListener('click', () => {
@@ -788,7 +846,7 @@ window.addEventListener('orbit-auth', async (e) => {
   if(user){
     btnSignIn.style.display = 'none';
     authWho.style.display = 'inline';
-    authWho.textContent = '✓ ' + (user.displayName || user.email);
+    authWho.textContent = user.displayName || user.email;
     cloudReady = false;
     $('status').textContent = '読み込み中…';
     const data = await window.OrbitCloud.load();
