@@ -94,11 +94,11 @@
   }
   #saveTemplate{
     display:inline-flex;align-items:center;justify-content:center;
-    width:9px;height:9px;padding:7px;background-clip:content-box;box-sizing:content-box;
-    border-radius:50%;background-color:var(--accent);
-    cursor:pointer;margin-left:8px;transition:transform .15s;
+    font-family:var(--mono);font-size:10px;color:var(--ink);
+    background:#fff;border:1px solid var(--accent);border-radius:999px;
+    padding:4px 12px;cursor:pointer;margin-left:8px;transition:transform .15s,background .15s;
   }
-  #saveTemplate:hover{transform:scale(1.15)}
+  #saveTemplate:hover{transform:scale(1.05);background:var(--surface)}
   #inputCard.expanded #clearTemplate{display:inline}
   #inputCard.collapsed textarea{min-height:20px!important;max-height:20px;overflow:hidden}
   #inputCard.expanded textarea{min-height:120px}
@@ -259,6 +259,7 @@
   #poolNameInput:focus{border-bottom:1px dashed var(--accent)}
   #poolCloseBtn{font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;padding:6px 4px}
   #poolDeleteBtn{font-family:var(--mono);font-size:11px;color:#B15C4F;cursor:pointer;padding:6px 4px}
+  #poolAutoBtn{font-family:var(--mono);font-size:11px;color:var(--accent);cursor:pointer;padding:6px 4px}
   #poolNoteList{padding:8px 16px 20px}
   .poolItem{padding:12px 0;border-bottom:1px solid var(--border)}
   .poolItem .piTop{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
@@ -387,46 +388,16 @@
       <div class="barLeft">
         <span id="noteCircle" style="display:inline-flex;align-items:center;justify-content:center;border:none;width:22px;height:16px;overflow:visible">
           <svg width="22" height="16" viewBox="0 0 34 26" style="overflow:visible">
-            <defs>
-              <radialGradient id="ncIriS" cx="35%" cy="30%" r="75%">
-                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
-                <stop offset="40%" stop-color="#ffe1f0" stop-opacity="0.3"/>
-                <stop offset="100%" stop-color="#d6e8ff" stop-opacity="0.42"/>
-              </radialGradient>
-              <radialGradient id="ncEdgeS" cx="50%" cy="50%" r="50%">
-                <stop offset="60%" stop-color="#ffffff" stop-opacity="0"/>
-                <stop offset="85%" stop-color="#ff9ecf" stop-opacity="0.55"/>
-                <stop offset="100%" stop-color="#8fd8ff" stop-opacity="0.65"/>
-              </radialGradient>
-              <radialGradient id="ncIriL" cx="35%" cy="30%" r="75%">
-                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
-                <stop offset="30%" stop-color="#ffe1f0" stop-opacity="0.32"/>
-                <stop offset="55%" stop-color="#d9f2e6" stop-opacity="0.36"/>
-                <stop offset="75%" stop-color="#d6e8ff" stop-opacity="0.42"/>
-                <stop offset="100%" stop-color="#fff3c9" stop-opacity="0.5"/>
-              </radialGradient>
-              <radialGradient id="ncEdgeL" cx="50%" cy="50%" r="50%">
-                <stop offset="65%" stop-color="#ffffff" stop-opacity="0"/>
-                <stop offset="85%" stop-color="#ff9ecf" stop-opacity="0.65"/>
-                <stop offset="92%" stop-color="#8fd8ff" stop-opacity="0.7"/>
-                <stop offset="100%" stop-color="#c8ffcf" stop-opacity="0.75"/>
-              </radialGradient>
-            </defs>
-            <!-- 小さい泡（左下） -->
-            <circle cx="6" cy="19" r="4.5" fill="url(#ncIriS)" stroke="#ffffff" stroke-width="0.4" stroke-opacity="0.85"/>
-            <circle cx="6" cy="19" r="4.5" fill="url(#ncEdgeS)" style="mix-blend-mode:screen"/>
-            <ellipse cx="4.5" cy="17.3" rx="1.1" ry="0.6" fill="#ffffff" opacity="0.9" transform="rotate(-25 4.5 17.3)"/>
-            <!-- 大きい泡（右上） -->
-            <circle cx="24" cy="9" r="8" fill="url(#ncIriL)" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.9"/>
-            <circle cx="24" cy="9" r="8" fill="url(#ncEdgeL)" style="mix-blend-mode:screen"/>
-            <ellipse cx="20.5" cy="5.8" rx="2" ry="1.1" fill="#ffffff" opacity="0.95" transform="rotate(-25 20.5 5.8)"/>
-            <ellipse cx="27.5" cy="12.5" rx="0.7" ry="0.4" fill="#ffffff" opacity="0.7" transform="rotate(-25 27.5 12.5)"/>
+            <circle cx="6" cy="19" r="4" stroke="#C7C3B8" stroke-width="1.1" fill="none"/>
+            <path d="M4.2 17c-0.5 0.5-0.7 1.1-0.5 1.7" stroke="#C7C3B8" stroke-width="0.85" stroke-linecap="round" opacity="0.7" fill="none"/>
+            <circle cx="24" cy="9" r="8" stroke="#C7C3B8" stroke-width="1.1" fill="none"/>
+            <path d="M19.5 5.5c-1 1-1.4 2.1-1.1 3.3" stroke="#C7C3B8" stroke-width="0.95" stroke-linecap="round" opacity="0.7" fill="none"/>
           </svg>
         </span>
-        <span class="qtag" id="poolTag" style="padding:3px 10px;font-size:10px;margin-left:8px"><i></i><span id="poolTagText">自動</span></span>
+        <span class="qtag" id="poolTag" style="padding:3px 10px;font-size:10px;margin-left:8px"><i></i><span id="poolTagText">未分類</span></span>
       </div>
       <div class="barRight">
-        <span class="dot r" id="dotLoose" title="未定形テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3v10M3.5 5.5l9 5M12.5 5.5l-9 5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot y" id="dotList" title="リスト用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M4 5h8M4 8h8M4 11h8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot b" id="dotPoem" title="詩・歌詞用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M6 12V4l6-1v7" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5.3" cy="12" r="1.6" fill="#fff"/><circle cx="11.3" cy="10" r="1.6" fill="#fff"/></svg></span><span class="dot g" id="dotIdea" title="アイデア用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3a4 4 0 0 0-2 7.5V12h4v-1.5A4 4 0 0 0 8 3z" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.5 13.5h3" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg></span><span id="clearTemplate">テンプレート解除</span><span id="saveTemplate" title="保存"><svg viewBox="0 0 16 16" width="8" height="8"><path d="M3 8.5l3.2 3.2L13 4.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="dot r" id="dotLoose" title="未定形テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3v10M3.5 5.5l9 5M12.5 5.5l-9 5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot y" id="dotList" title="リスト用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M4 5h8M4 8h8M4 11h8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot b" id="dotPoem" title="詩・歌詞用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M6 12V4l6-1v7" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5.3" cy="12" r="1.6" fill="#fff"/><circle cx="11.3" cy="10" r="1.6" fill="#fff"/></svg></span><span class="dot g" id="dotIdea" title="アイデア用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3a4 4 0 0 0-2 7.5V12h4v-1.5A4 4 0 0 0 8 3z" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.5 13.5h3" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg></span><span id="clearTemplate">テンプレート解除</span><span id="saveTemplate">保存</span>
       </div>
     </div>
     <div class="body">
@@ -470,6 +441,7 @@
   <div id="poolPanel">
     <div class="poolHeader">
       <input type="text" id="poolNameInput" placeholder="プール名">
+      <span id="poolAutoBtn" style="display:none">自動振り分け</span>
       <span id="poolDeleteBtn">削除</span>
       <span id="poolCloseBtn">閉じる</span>
     </div>
@@ -686,7 +658,6 @@ function escapeHtml(s){
 function openPoolMenuForNote(e, tagEl){
   const id = tagEl.dataset.id;
   qmenu.innerHTML = `
-    <div data-choice="AUTO"><i class="circleIcon"></i>自動</div>
     <div data-choice="NONE"><i class="circleIcon"></i>未分類</div>
     ${categories.map(c => `<div data-choice="${c.id}"><i style="background:${colorForCategory(c.id)}"></i>${escapeHtml(c.name)}</div>`).join('')}
   `;
@@ -700,8 +671,7 @@ function openPoolMenuForNote(e, tagEl){
       const note = notes.find(n => n.id === id);
       if(note){
         const choice = item.dataset.choice;
-        if(choice === 'AUTO'){ note.categoryManual = false; note.categoryId = autoClassify(note); }
-        else if(choice === 'NONE'){ note.categoryManual = true; note.categoryId = null; }
+        if(choice === 'NONE'){ note.categoryManual = true; note.categoryId = null; }
         else { note.categoryManual = true; note.categoryId = choice; }
         render(); requestSave();
       }
@@ -798,10 +768,9 @@ const poolTagEl = $('poolTag'), poolTagTextEl = $('poolTagText');
 let pendingManualChoice = { touched:false, categoryId:null };
 
 function poolLabelFor(categoryId){
-  if(categoryId === undefined) return '自動';
-  if(categoryId === null) return '未分類';
+  if(categoryId === undefined || categoryId === null) return '未分類';
   const cat = categories.find(c=>c.id===categoryId);
-  return cat ? cat.name : '自動';
+  return cat ? cat.name : '未分類';
 }
 function poolLabelForNote(n){
   return n.categoryId ? poolLabelFor(n.categoryId) : '未分類';
@@ -812,14 +781,13 @@ function resetPoolPicker(existingNote){
   if(existingNote && existingNote.categoryManual){
     poolTagTextEl.textContent = poolLabelFor(existingNote.categoryId === undefined ? null : existingNote.categoryId);
   } else {
-    poolTagTextEl.textContent = '自動';
+    poolTagTextEl.textContent = '未分類';
   }
 }
 
 poolTagEl.addEventListener('click', (e) => {
   e.stopPropagation();
   qmenu.innerHTML = `
-    <div data-choice="AUTO"><i class="circleIcon"></i>自動</div>
     <div data-choice="NONE"><i class="circleIcon"></i>未分類</div>
     ${categories.map(c => `<div data-choice="${c.id}"><i style="background:${colorForCategory(c.id)}"></i>${escapeHtml(c.name)}</div>`).join('')}
   `;
@@ -831,10 +799,7 @@ poolTagEl.addEventListener('click', (e) => {
   qmenu.querySelectorAll('div').forEach(item => {
     item.onclick = () => {
       const choice = item.dataset.choice;
-      if(choice === 'AUTO'){
-        pendingManualChoice = { touched:true, categoryId: undefined };
-        poolTagTextEl.textContent = '自動';
-      } else if(choice === 'NONE'){
+      if(choice === 'NONE'){
         pendingManualChoice = { touched:true, categoryId: null };
         poolTagTextEl.textContent = '未分類';
       } else {
@@ -868,20 +833,13 @@ function sortedCategoriesForColor(){
 
 function applyPoolChoice(note, isNew){
   if(pendingManualChoice.touched){
-    if(pendingManualChoice.categoryId === undefined){
-      note.categoryManual = false;
-      note.categoryId = autoClassify(note);
-    } else {
-      note.categoryManual = true;
-      note.categoryId = pendingManualChoice.categoryId;
-    }
+    note.categoryManual = true;
+    note.categoryId = pendingManualChoice.categoryId;
   } else if(isNew){
     note.categoryManual = false;
-    note.categoryId = autoClassify(note);
-  } else if(!note.categoryManual){
-    note.categoryId = autoClassify(note);
+    note.categoryId = null;
   }
-  // isNewでもtouchedでもなく、既にcategoryManualがtrueの場合は何もしない（既存の手動選択を保つ）
+  // 編集時、ピッカーに触れていなければ何もしない（既存の分類状態をそのまま保つ）
 }
 
 /* ---------- 分類：既存システム（AI不使用）による自動振り分け ----------
@@ -964,7 +922,7 @@ function addMemo(){
   };
   applyPoolChoice(newNote, true);
 
-  playConvergeEffect(() => {
+  playConvergeEffect(newNote.categoryId, () => {
     notes.push(newNote);
     memoInput.value = '';
     activeTemplate = null;
@@ -979,11 +937,10 @@ function addMemo(){
   });
 }
 
-function playConvergeEffect(onDone){
+function playConvergeEffect(categoryId, onDone){
   // 「メモ欄の左上の〇」が、内容を包み込みながら小さくなり、
-  // 一覧の先頭カード（新しいメモは常に先頭に来る）のタイトル横の〇へ着地する。
+  // 実際に着地するプール（未分類、または該当するプールの箱）へ向かって飛んでいく。
   const startRect = noteCircleEl.getBoundingClientRect();
-  const listRect = listEl.getBoundingClientRect();
 
   const dot = document.createElement('div');
   dot.className = 'converge-dot';
@@ -992,12 +949,15 @@ function playConvergeEffect(onDone){
   dot.style.width  = startRect.width + 'px';
   dot.style.height = startRect.height + 'px';
   dot.style.opacity = '0.9';
-  dot.style.background = Q_META.idea.color;
+  dot.style.background = categoryId ? colorForCategory(categoryId) : '#C7C3B8';
   document.body.appendChild(dot);
 
-  // 先頭カードのタイトル〇のおおよその位置（カードのpadding: 16px 18px を基準に近似）
-  const targetX = listRect.left + 18 + 4.5;
-  const targetY = listRect.top + 16 + 8;
+  const targetBox = categoryId
+    ? categoriesEl.querySelector(`[data-cat="${categoryId}"]`)
+    : poolEl;
+  const targetRect = (targetBox || listEl).getBoundingClientRect();
+  const targetX = targetRect.left + Math.min(24, targetRect.width/2);
+  const targetY = targetRect.top + 22;
 
   requestAnimationFrame(() => {
     dot.style.left = (targetX - 4.5) + 'px';
@@ -1134,6 +1094,11 @@ cardDeleteEl.addEventListener('click', async () => {
 });
 
 const poolEl = $('pool'), categoriesEl = $('categories');
+poolEl.style.cursor = 'pointer';
+poolEl.addEventListener('click', (e) => {
+  if(e.target.closest('.zdot')) return; // 〇のクリックはそのメモのカードを開く（別ハンドラ）
+  openPoolDetail(null);
+});
 
 function makeZDot(note){
   const q = Q_META[note.q] || Q_META.idea;
@@ -1180,6 +1145,7 @@ function renderClassify(){
   sortedCats.forEach(cat => {
     const box = document.createElement('div');
     box.className = 'dropzone';
+    box.dataset.cat = cat.id;
     box.style.cursor = 'pointer';
     box.innerHTML = `
       <div class="czlabel">
@@ -1203,9 +1169,22 @@ const poolOverlayEl = $('poolOverlay'), poolNameInputEl = $('poolNameInput'), po
 let openPoolId = null;
 
 function openPoolDetail(catId){
+  if(catId === null){
+    openPoolId = null;
+    poolNameInputEl.value = '未分類';
+    poolNameInputEl.disabled = true;
+    $('poolDeleteBtn').style.display = 'none';
+    $('poolAutoBtn').style.display = 'inline';
+    renderPoolNoteList(null);
+    poolOverlayEl.classList.add('open');
+    return;
+  }
   const cat = categories.find(c => c.id === catId);
   if(!cat) return;
   openPoolId = catId;
+  poolNameInputEl.disabled = false;
+  $('poolDeleteBtn').style.display = 'inline';
+  $('poolAutoBtn').style.display = 'none';
   poolNameInputEl.value = cat.name;
   renderPoolNoteList(catId);
   poolOverlayEl.classList.add('open');
@@ -1219,7 +1198,8 @@ function renderPoolNoteList(catId){
   }
   poolNoteListEl.innerHTML = items.map(n => {
     const { title } = preview(n);
-    const options = ['<option value="">— 移動先を選ぶ —</option>', '<option value="__NONE__">未分類へ</option>']
+    const options = ['<option value="">— 移動先を選ぶ —</option>']
+      .concat(catId !== null ? ['<option value="__NONE__">未分類へ</option>'] : [])
       .concat(categories.filter(c => c.id !== catId).map(c => `<option value="${c.id}">${escapeHtml(c.name)}へ</option>`))
       .join('');
     return `
@@ -1263,6 +1243,17 @@ poolNameInputEl.addEventListener('change', () => {
   requestSave();
   renderClassify();
 });
+$('poolAutoBtn').addEventListener('click', () => {
+  const targets = notes.filter(n => !n.categoryId && !n.categoryManual);
+  targets.forEach(n => {
+    const result = autoClassify(n);
+    if(result) n.categoryId = result;
+  });
+  requestSave();
+  renderPoolNoteList(null);
+  renderClassify();
+});
+
 $('poolCloseBtn').addEventListener('click', () => {
   poolOverlayEl.classList.remove('open');
   openPoolId = null;
