@@ -92,7 +92,13 @@
     display:none;font-family:var(--mono);font-size:10px;color:var(--dim);
     cursor:pointer;margin-left:8px;
   }
+  #saveTemplate{
+    display:none;font-family:var(--mono);font-size:10px;color:#fff;
+    background:var(--accent);border-radius:4px;padding:3px 9px;
+    cursor:pointer;margin-left:8px;
+  }
   #inputCard.expanded #clearTemplate{display:inline}
+  #inputCard.expanded #saveTemplate{display:inline-block}
   #inputCard.collapsed textarea{min-height:20px!important;max-height:20px;overflow:hidden}
   #inputCard.expanded textarea{min-height:120px}
   #inputCard.expanded #memoInput{min-height:80px}
@@ -202,6 +208,7 @@
   .qmenu div{padding:7px 14px;font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:8px;cursor:pointer}
   .qmenu div:hover{background:var(--bg)}
   .qmenu i{width:6px;height:6px;border-radius:50%}
+  .qmenu i.circleIcon{background:none;border:1px solid var(--dim)}
 
   /* ---------- カスタムダイアログ（prompt/confirmの置き換え） ---------- */
   #dialogOverlay{
@@ -418,7 +425,7 @@
         <span class="qtag" id="poolTag" style="padding:3px 10px;font-size:10px;margin-left:8px"><i></i><span id="poolTagText">自動</span></span>
       </div>
       <div class="barRight">
-        <span class="dot r" id="dotLoose" title="未定形テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3v10M3.5 5.5l9 5M12.5 5.5l-9 5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot y" id="dotList" title="リスト用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M4 5h8M4 8h8M4 11h8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot b" id="dotPoem" title="詩・歌詞用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M6 12V4l6-1v7" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5.3" cy="12" r="1.6" fill="#fff"/><circle cx="11.3" cy="10" r="1.6" fill="#fff"/></svg></span><span class="dot g" id="dotIdea" title="アイデア用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3a4 4 0 0 0-2 7.5V12h4v-1.5A4 4 0 0 0 8 3z" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.5 13.5h3" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg></span><span id="clearTemplate">閉じる</span>
+        <span class="dot r" id="dotLoose" title="未定形テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3v10M3.5 5.5l9 5M12.5 5.5l-9 5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot y" id="dotList" title="リスト用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M4 5h8M4 8h8M4 11h8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot b" id="dotPoem" title="詩・歌詞用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M6 12V4l6-1v7" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5.3" cy="12" r="1.6" fill="#fff"/><circle cx="11.3" cy="10" r="1.6" fill="#fff"/></svg></span><span class="dot g" id="dotIdea" title="アイデア用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3a4 4 0 0 0-2 7.5V12h4v-1.5A4 4 0 0 0 8 3z" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.5 13.5h3" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg></span><span id="saveTemplate">保存</span><span id="clearTemplate">テンプレート解除</span>
       </div>
     </div>
     <div class="body">
@@ -644,28 +651,28 @@ function render(){
   emptyEl.style.display = sorted.length ? 'none' : 'block';
 
   for(const n of sorted){
-    const q = Q_META[n.q] || Q_META.idea;
+    const poolColor = n.categoryId ? colorForCategory(n.categoryId) : '#C7C3B8';
     const { title, sub } = preview(n);
     const card = document.createElement('div');
     card.className = 'card';
     card.dataset.id = n.id;
     card.innerHTML = `
       <div class="row1">
-        <div class="left"><span class="titleCircle" style="background:${q.color}"></span><div class="title">${escapeHtml(title)}</div></div>
-        <div class="qtag" data-q="${n.q}" data-id="${n.id}"><i></i>${q.label}</div>
+        <div class="left"><span class="titleCircle" style="background:${poolColor}"></span><div class="title">${escapeHtml(title)}</div></div>
+        <div class="qtag" data-id="${n.id}"><i style="background:${poolColor}"></i>${escapeHtml(poolLabelForNote(n))}</div>
       </div>
       ${sub ? `<div class="sub">${escapeHtml(sub)}</div>` : ''}
-      <div class="meta"><span>${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span><span>${escapeHtml(poolLabelForNote(n))}</span></div>
+      <div class="meta"><span>${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span></div>
     `;
     card.addEventListener('click', (e) => {
-      if(e.target.closest('.qtag')) return; // タグのクリックは象限変更（別ハンドラ）
+      if(e.target.closest('.qtag')) return; // タグのクリックはプール変更（別ハンドラ）
       openCardForEdit(n.id);
     });
     listEl.appendChild(card);
   }
 
   listEl.querySelectorAll('.qtag').forEach(tag => {
-    tag.addEventListener('click', (e) => { e.stopPropagation(); openQMenu(e, tag); });
+    tag.addEventListener('click', (e) => { e.stopPropagation(); openPoolMenuForNote(e, tag); });
   });
 
   renderClassify();
@@ -675,11 +682,13 @@ function escapeHtml(s){
   return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function openQMenu(e, tagEl){
+function openPoolMenuForNote(e, tagEl){
   const id = tagEl.dataset.id;
-  qmenu.innerHTML = Q_ORDER.map(q =>
-    `<div data-q="${q}"><i style="background:${Q_META[q].color}"></i>${Q_META[q].label}</div>`
-  ).join('');
+  qmenu.innerHTML = `
+    <div data-choice="AUTO"><i class="circleIcon"></i>自動</div>
+    <div data-choice="NONE"><i class="circleIcon"></i>未分類</div>
+    ${categories.map(c => `<div data-choice="${c.id}"><i style="background:${colorForCategory(c.id)}"></i>${escapeHtml(c.name)}</div>`).join('')}
+  `;
   const rect = tagEl.getBoundingClientRect();
   qmenu.style.top = (window.scrollY + rect.bottom + 4) + 'px';
   qmenu.style.left = (window.scrollX + rect.left) + 'px';
@@ -688,7 +697,13 @@ function openQMenu(e, tagEl){
   qmenu.querySelectorAll('div').forEach(item => {
     item.onclick = () => {
       const note = notes.find(n => n.id === id);
-      if(note){ note.q = item.dataset.q; render(); requestSave(); }
+      if(note){
+        const choice = item.dataset.choice;
+        if(choice === 'AUTO'){ note.categoryManual = false; note.categoryId = autoClassify(note); }
+        else if(choice === 'NONE'){ note.categoryManual = true; note.categoryId = null; }
+        else { note.categoryManual = true; note.categoryId = choice; }
+        render(); requestSave();
+      }
       qmenu.classList.remove('open');
     };
   });
@@ -803,8 +818,8 @@ function resetPoolPicker(existingNote){
 poolTagEl.addEventListener('click', (e) => {
   e.stopPropagation();
   qmenu.innerHTML = `
-    <div data-choice="AUTO">自動</div>
-    <div data-choice="NONE">未分類</div>
+    <div data-choice="AUTO"><i class="circleIcon"></i>自動</div>
+    <div data-choice="NONE"><i class="circleIcon"></i>未分類</div>
     ${categories.map(c => `<div data-choice="${c.id}"><i style="background:${colorForCategory(c.id)}"></i>${escapeHtml(c.name)}</div>`).join('')}
   `;
   const rect = poolTagEl.getBoundingClientRect();
@@ -1061,6 +1076,7 @@ function closeTemplate(){
 }
 
 $('clearTemplate').addEventListener('click', closeTemplate);
+$('saveTemplate').addEventListener('click', addMemo);
 
 $('dotIdea').addEventListener('click', () => toggleTemplate('idea'));
 $('dotLoose').addEventListener('click', () => toggleTemplate('loose'));
