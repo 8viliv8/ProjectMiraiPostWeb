@@ -136,6 +136,14 @@
     color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.7;
     min-height:22px;max-height:180px;
   }
+  @media (max-width: 600px){
+    /* iOSは16px未満の入力欄をタップすると自動でズームしてしまうため、
+       スマホ幅の時だけ16pxに引き上げてズームを防ぐ */
+    #inputCard textarea, #inputCard input,
+    #structuredFields textarea, #structuredFields input{
+      font-size:16px !important;
+    }
+  }
   #inputCard textarea::placeholder{color:#B4B0A6}
   #inputCard .foot{
     display:flex;justify-content:space-between;align-items:center;
@@ -818,6 +826,7 @@ poolTagEl.addEventListener('click', (e) => {
         poolTagTextEl.textContent = poolLabelFor(choice);
       }
       qmenu.classList.remove('open');
+      memoInput.focus(); // 選択後は入力欄にフォーカスを戻し、離れれば普通に保存される流れに合流させる
     };
   });
 
@@ -996,10 +1005,19 @@ memoInput.addEventListener('keydown', (e) => {
 });
 
 const inputCard = $('inputCard');
+let mouseDownInsideCard = false;
+document.addEventListener('mousedown', (e) => {
+  mouseDownInsideCard = inputCard.contains(e.target);
+});
+document.addEventListener('touchstart', (e) => {
+  mouseDownInsideCard = inputCard.contains(e.target);
+}, { passive:true });
+
 inputCard.addEventListener('focusout', () => {
   // カード全体からフォーカスが完全に外れた時だけ保存する
-  // （タイトル欄→目的欄、のようにカード内を移動している間は保存しない）
+  // （タイトル欄→目的欄、プール選択ボタンなど、カード内を操作している間は保存しない）
   setTimeout(() => {
+    if(mouseDownInsideCard) return; // カード内の何か（ボタン等）を操作した直後の、見かけ上のフォーカス離脱
     if(!inputCard.contains(document.activeElement)){
       addMemo();
     }
