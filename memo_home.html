@@ -93,12 +93,13 @@
     cursor:pointer;margin-left:8px;
   }
   #saveTemplate{
-    display:none;font-family:var(--mono);font-size:10px;color:#fff;
-    background:var(--accent);border-radius:4px;padding:3px 9px;
-    cursor:pointer;margin-left:8px;
+    display:inline-flex;align-items:center;justify-content:center;
+    width:9px;height:9px;padding:7px;background-clip:content-box;box-sizing:content-box;
+    border-radius:50%;background-color:var(--accent);
+    cursor:pointer;margin-left:8px;transition:transform .15s;
   }
+  #saveTemplate:hover{transform:scale(1.15)}
   #inputCard.expanded #clearTemplate{display:inline}
-  #inputCard.expanded #saveTemplate{display:inline-block}
   #inputCard.collapsed textarea{min-height:20px!important;max-height:20px;overflow:hidden}
   #inputCard.expanded textarea{min-height:120px}
   #inputCard.expanded #memoInput{min-height:80px}
@@ -425,7 +426,7 @@
         <span class="qtag" id="poolTag" style="padding:3px 10px;font-size:10px;margin-left:8px"><i></i><span id="poolTagText">自動</span></span>
       </div>
       <div class="barRight">
-        <span class="dot r" id="dotLoose" title="未定形テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3v10M3.5 5.5l9 5M12.5 5.5l-9 5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot y" id="dotList" title="リスト用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M4 5h8M4 8h8M4 11h8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot b" id="dotPoem" title="詩・歌詞用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M6 12V4l6-1v7" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5.3" cy="12" r="1.6" fill="#fff"/><circle cx="11.3" cy="10" r="1.6" fill="#fff"/></svg></span><span class="dot g" id="dotIdea" title="アイデア用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3a4 4 0 0 0-2 7.5V12h4v-1.5A4 4 0 0 0 8 3z" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.5 13.5h3" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg></span><span id="saveTemplate">保存</span><span id="clearTemplate">テンプレート解除</span>
+        <span class="dot r" id="dotLoose" title="未定形テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3v10M3.5 5.5l9 5M12.5 5.5l-9 5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot y" id="dotList" title="リスト用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M4 5h8M4 8h8M4 11h8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot b" id="dotPoem" title="詩・歌詞用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M6 12V4l6-1v7" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5.3" cy="12" r="1.6" fill="#fff"/><circle cx="11.3" cy="10" r="1.6" fill="#fff"/></svg></span><span class="dot g" id="dotIdea" title="アイデア用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3a4 4 0 0 0-2 7.5V12h4v-1.5A4 4 0 0 0 8 3z" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.5 13.5h3" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg></span><span id="clearTemplate">テンプレート解除</span><span id="saveTemplate" title="保存"><svg viewBox="0 0 16 16" width="8" height="8"><path d="M3 8.5l3.2 3.2L13 4.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       </div>
     </div>
     <div class="body">
@@ -436,7 +437,7 @@
       <div id="structuredFields"></div>
 
       <div class="foot">
-        <span id="footHint">⏎ で改行 ・ 他をタップすると自動で保存されます</span>
+        <span id="footHint">⏎ で改行 ・保存ボタンタップ/ 他をタップすると自動で保存されます</span>
         <span id="cardDelete">削除</span>
       </div>
     </div>
