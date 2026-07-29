@@ -336,6 +336,21 @@
   .catDelete:hover{color:#B15C4F}
 
   /* ---------- 折りたたみ式の一覧 ---------- */
+  /* ---------- 常時表示の検索バー（控えめに） ---------- */
+  #searchBarWrap{
+    position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+    z-index:40;width:min(280px,80vw);
+    opacity:.5;transition:opacity .2s;
+  }
+  #searchBarWrap:focus-within, #searchBarWrap:hover{opacity:1}
+  #searchInput{
+    width:100%;font-family:var(--mono);font-size:11px;color:var(--ink);
+    background:var(--surface);border:1px solid var(--border);border-radius:999px;
+    padding:6px 14px;outline:none;box-shadow:0 4px 14px -6px rgba(0,0,0,.15);
+  }
+  #searchInput:focus{border-color:var(--accent)}
+  #searchInput::placeholder{color:var(--dim)}
+
   #listToggle{
     margin-top:40px;padding-top:20px;border-top:1px solid var(--border);
     font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.05em;
@@ -440,6 +455,10 @@
     <div id="empty" style="display:none">まだメモがありません。上の欄から書き始めてください。</div>
   </div>
 
+</div>
+
+<div id="searchBarWrap">
+  <input type="text" id="searchInput" placeholder="検索">
 </div>
 
 <div id="bubbleIntro" style="position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:70"></div>
@@ -627,9 +646,20 @@ function preview(n){
   return { title, sub: rest.slice(0, 80) };
 }
 
+let searchQuery = '';
+function matchesSearch(n){
+  if(!searchQuery) return true;
+  const haystack = [n.title, n.text, n.purpose, n.concept, (n.keywords||[]).join(' ')]
+    .filter(Boolean).join(' ').toLowerCase();
+  return haystack.includes(searchQuery);
+}
+
 function render(){
   listEl.innerHTML = '';
-  const sorted = [...notes].filter(n => n.id !== editingNoteId).sort((a,b) => (b.t||0) - (a.t||0));
+  const sorted = [...notes]
+    .filter(n => n.id !== editingNoteId)
+    .filter(matchesSearch)
+    .sort((a,b) => (b.t||0) - (a.t||0));
   emptyEl.style.display = sorted.length ? 'none' : 'block';
 
   for(const n of sorted){
@@ -1119,10 +1149,9 @@ poolEl.addEventListener('click', (e) => {
 });
 
 function makeZDot(note){
-  const q = Q_META[note.q] || Q_META.idea;
   const dot = document.createElement('div');
   dot.className = 'zdot';
-  dot.style.background = q.color;
+  dot.style.background = note.categoryId ? colorForCategory(note.categoryId) : '#C7C3B8';
   dot.title = (note.title || note.text || '').slice(0, 30);
   dot.draggable = true;
   dot.dataset.id = note.id;
@@ -1305,6 +1334,15 @@ const listToggleEl = $('listToggle'), listSectionEl = $('listSection');
 listToggleEl.addEventListener('click', () => {
   const open = listSectionEl.classList.toggle('open');
   listToggleEl.textContent = (open ? '▾ 一覧' : '▸ 一覧');
+});
+
+$('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value.trim().toLowerCase();
+  if(searchQuery){
+    listSectionEl.classList.add('open');
+    listToggleEl.textContent = '▾ 一覧';
+  }
+  render();
 });
 
 render();
