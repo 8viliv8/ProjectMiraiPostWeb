@@ -3,9 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>H゜me</title>
+<title>H°me</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+<meta name="apple-mobile-web-app-title" content="H°me">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -71,9 +74,9 @@
   }
   #orbitCard .bar{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#EFEDE7;border-bottom:1px solid var(--border)}
   #orbitCard .dotrow span{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
-  #orbitCard .dot.r{background:#FF5F57}
-  #orbitCard .dot.y{background:#FEBC2E}
-  #orbitCard .dot.g{background:#28C840}
+  #orbitCard .dot.r{background:#B37D6E}
+  #orbitCard .dot.y{background:#C4A05A}
+  #orbitCard .dot.g{background:#7C9575}
   #orbitCard .barRight{font-family:var(--mono);font-size:10px;color:#B15C4F;cursor:pointer}
   #orbitCard .body{padding:18px 20px}
   #orbitCard textarea#cardMemo{
@@ -108,7 +111,7 @@
   #notify.show{bottom:20px}
   #notify .bar{display:flex;gap:6px;padding:9px 12px;background:#EFEDE7;border-bottom:1px solid var(--border);border-radius:10px 10px 0 0}
   #notify .bar span{width:9px;height:9px;border-radius:50%}
-  #notify .bar span.r{background:#FF5F57} #notify .bar span.y{background:#FEBC2E} #notify .bar span.g{background:#28C840}
+  #notify .bar span.r{background:#B37D6E} #notify .bar span.y{background:#C4A05A} #notify .bar span.g{background:#7C9575}
   #notify .body{padding:14px 16px}
   #notify .combo{font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.7}
   #notify .result{font-size:12.5px;color:var(--ink);line-height:1.7}
@@ -180,7 +183,7 @@
 </head>
 <body>
 
-<div class="hud" id="title"><span class="tankFrame"><svg class="bubble-icon" width="9" height="9" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.3"/><path d="M6 6.5c-0.9 0.9-1.3 1.9-1 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.55"/></svg>.H゜<svg class="fish-icon" width="16" height="10" viewBox="0 0 32 20" fill="none"><path d="M4 10c4-6 16-6 20 0-4 6-16 6-20 0z" stroke="currentColor" stroke-width="1.4"/><path d="M24 10l6-4v8l-6-4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="9" cy="9" r="0.9" fill="currentColor"/></svg>me</span><a id="memoLink" href="index.html">← <svg class="bubble-icon" width="18" height="16" viewBox="0 0 34 26" fill="none"><circle cx="6" cy="19" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M4.2 17c-0.5 0.5-0.7 1.1-0.5 1.7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><circle cx="24" cy="8" r="8.5" stroke="currentColor" stroke-width="1.3"/><path d="M19 4.5c-1 1-1.4 2.1-1.1 3.3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.55"/></svg></a></div>
+<div class="hud" id="title"><span class="tankFrame"><svg class="bubble-icon" width="9" height="9" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.3"/><path d="M6 6.5c-0.9 0.9-1.3 1.9-1 3" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.55"/></svg>.H°<svg class="fish-icon" width="16" height="10" viewBox="0 0 32 20" fill="none"><path d="M4 10c4-6 16-6 20 0-4 6-16 6-20 0z" stroke="currentColor" stroke-width="1.4"/><path d="M24 10l6-4v8l-6-4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="9" cy="9" r="0.9" fill="currentColor"/></svg>me</span><a id="memoLink" href="index.html">← <svg class="bubble-icon" width="18" height="16" viewBox="0 0 34 26" fill="none"><circle cx="6" cy="19" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M4.2 17c-0.5 0.5-0.7 1.1-0.5 1.7" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.55"/><circle cx="24" cy="8" r="8.5" stroke="currentColor" stroke-width="1.3"/><path d="M19 4.5c-1 1-1.4 2.1-1.1 3.3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.55"/></svg></a></div>
 
 <div class="hud" id="authWidget">
   <button id="btnSignIn">ログイン</button>
@@ -292,7 +295,7 @@ onAuthStateChanged(auth, (user) => {
 
 <script>
 /* =========================================================
-   H゜me — 引力でつながる場所
+   H°me — 引力でつながる場所
    星・宇宙のモチーフはやめ、XLN Audio「XO」のSpace Viewを参考に、
    プール（分類）を重力の中心とし、似ているメモ同士がさらに引き合う
    力学シミュレーションで配置する。
