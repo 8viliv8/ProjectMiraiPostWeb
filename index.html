@@ -3,52 +3,858 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H゜me — memo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F3EF;
+    --surface:#FAF9F6;
+    --border:#E3E0D8;
+    --ink:#2C2E31;
+    --dim:#8E8B82;
+    --accent:#7A8B83;
+    --mono:'JetBrains Mono',monospace;
+    --ui:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
 
-<title>Project Mirai Post</title>
+    --idea:#A8757F;
+    --nichijo:#6E828C;
+    --kaji:#7C8A6E;
+    --shigoto:#8C7A5C;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:var(--ui);
+    min-height:100vh;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:36px 20px 100px}
 
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
+  header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:28px}
+  header h1{font-size:15px;font-weight:500;letter-spacing:.02em;margin:0}
+  header h1 span{color:var(--dim);font-weight:400;font-size:12px;margin-left:8px}
 
+  #universeLink{
+    font-family:var(--mono);font-size:11px;letter-spacing:.05em;
+    color:var(--dim);text-decoration:none;border:1px solid var(--border);
+    border-radius:6px;padding:6px 12px;transition:.2s;
+  }
+  #universeLink:hover{color:var(--ink);border-color:var(--accent);background:var(--surface)}
+
+  /* ---------- 入力欄：ウィンドウ風カード（白基調） ---------- */
+  #inputCard{
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;
+    box-shadow:0 12px 30px -18px rgba(0,0,0,.12);
+    margin-bottom:34px;
+  }
+  #inputCard .bar{
+    display:flex;align-items:center;justify-content:space-between;gap:6px;
+    padding:10px 12px;background:#EFEDE7;border-bottom:1px solid var(--border);
+  }
+  #inputCard .barLeft{display:flex;align-items:center}
+  #inputCard .barRight{display:flex;align-items:center;gap:6px}
+  #noteCircle{
+    width:12px;height:12px;border-radius:50%;
+    border:1.6px solid var(--dim);background:transparent;
+    transition:background .2s,border-color .2s;
+  }
+  #inputCard .dot{width:9px;height:9px;border-radius:50%;cursor:pointer;transition:transform .15s}
+  #inputCard .dot:hover{transform:scale(1.25)}
+  #inputCard .dot.r{background:#FF5F57}
+  #inputCard .dot.y{background:#FEBC2E}
+  #inputCard .dot.g{background:#28C840}
+  #inputCard .dot.b{background:#6E8CC4}
+  #inputCard .dot.active{box-shadow:0 0 0 3px rgba(0,0,0,.08)}
+  #inputCard.collapsed textarea{min-height:20px!important;max-height:20px;overflow:hidden}
+  #inputCard.expanded textarea{min-height:120px}
+  #inputCard.expanded #memoInput{min-height:80px}
+
+  /* ---------- 構造化フィールド：ラベルは固定・編集不可（罫線扱い） ---------- */
+  #structuredFields{
+    display:none;
+    margin-top:14px;padding-top:14px;border-top:1px dashed var(--border);
+  }
+  #inputCard.expanded #structuredFields{display:block}
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .flabel{
+    font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+    color:#B4B0A6;user-select:none;pointer-events:none;
+    margin-bottom:4px;
+  }
+  .field input, .field textarea{
+    width:100%;border:none;outline:none;resize:none;background:transparent;
+    font-family:var(--ui);font-size:13px;color:var(--ink);line-height:1.7;
+  }
+  .field input::placeholder, .field textarea::placeholder{color:#C7C3B8}
+  #inputCard .body{padding:16px 18px 18px}
+  #inputCard .prompt{
+    display:flex;gap:10px;align-items:flex-start;
+    font-family:var(--mono);font-size:13px;color:var(--ink);
+  }
+  #inputCard .prompt::before{content:'>';color:var(--accent);opacity:.9}
+  #inputCard textarea{
+    flex:1;background:transparent;border:none;outline:none;resize:none;
+    color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.7;
+    min-height:22px;max-height:180px;
+  }
+  #inputCard textarea::placeholder{color:#B4B0A6}
+  #inputCard .foot{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--dim);
+  }
+  #inputCard button{
+    font-family:var(--mono);font-size:11px;letter-spacing:.05em;
+    background:var(--accent);color:#fff;border:none;border-radius:5px;
+    padding:6px 14px;cursor:pointer;transition:opacity .2s;
+  }
+  #inputCard button:hover{opacity:.85}
+  #inputCard button:disabled{opacity:.35;cursor:default}
+
+  /* ---------- 認証 ---------- */
+  #authRow{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin:-16px 0 20px;font-size:11px;color:var(--dim)}
+  #authRow button{
+    font-family:var(--ui);font-size:11px;color:var(--dim);
+    background:none;border:1px solid var(--border);border-radius:6px;
+    padding:5px 12px;cursor:pointer;
+  }
+  #authRow button:hover{border-color:var(--accent);color:var(--ink)}
+  #authWho{cursor:pointer}
+
+  /* ---------- 一覧 ---------- */
+  #list{display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .card{
+    background:var(--surface);padding:16px 18px;cursor:default;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .card .row1{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .card .row1 .left{display:flex;align-items:center;gap:9px;min-width:0}
+  .card .titleCircle{width:9px;height:9px;border-radius:50%;flex:none}
+  .card .title{font-size:13.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card .sub{font-size:12px;color:var(--dim);line-height:1.6}
+  .card .meta{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9.5px;color:var(--dim)}
+  .qtag{
+    display:inline-flex;align-items:center;gap:5px;
+    border:1px solid var(--border);border-radius:999px;
+    padding:2px 9px;font-family:var(--mono);font-size:9.5px;color:var(--dim);
+    cursor:pointer;user-select:none;background:#fff;
+  }
+  .qtag i{width:6px;height:6px;border-radius:50%}
+  .qtag[data-q="idea"] i{background:var(--idea)}
+  .qtag[data-q="nichijo"] i{background:var(--nichijo)}
+  .qtag[data-q="kaji"] i{background:var(--kaji)}
+  .qtag[data-q="shigoto"] i{background:var(--shigoto)}
+
+  .qmenu{position:absolute;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 12px 30px -10px rgba(0,0,0,.25);overflow:hidden;z-index:20;display:none}
+  .qmenu.open{display:block}
+  .qmenu div{padding:7px 14px;font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:8px;cursor:pointer}
+  .qmenu div:hover{background:var(--bg)}
+  .qmenu i{width:6px;height:6px;border-radius:50%}
+
+  #empty{color:var(--dim);font-size:12px;text-align:center;padding:60px 0}
+
+  .card{cursor:pointer}
+  .card:hover{background:#F5F3EE}
+
+  /* ---------- 保存時：ひとつの〇に収束するエフェクト ---------- */
+  .converge-dot{
+    position:fixed;z-index:60;border-radius:50%;
+    background:var(--idea);
+    pointer-events:none;
+    transition:all .55s cubic-bezier(.3,.7,.2,1);
+  }
+
+  /* ---------- カードが「編集中」の時だけ出す削除リンク ---------- */
+  #cardDelete{display:none;font-family:var(--mono);font-size:10px;color:#B15C4F;cursor:pointer;letter-spacing:.05em}
+  #inputCard.editing #cardDelete{display:inline}
+  #inputCard.editing .barLeft::after{content:'編集中';font-family:var(--mono);font-size:9px;color:var(--dim);margin-left:8px;letter-spacing:.1em}
+
+  /* ---------- 分類 ---------- */
+  #classifySection{margin-top:56px;padding-top:28px;border-top:1px solid var(--border)}
+  #pool{
+    width:100%;min-height:70px;
+    background:var(--surface);border:1px dashed var(--border);border-radius:10px;
+    padding:12px 16px;margin-bottom:14px;
+    display:flex;flex-direction:column;
+    transition:border-color .2s,background .2s;
+  }
+  #poolsRow{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+  #categories{display:contents}
+  .dropzone{
+    background:var(--surface);border:1px dashed var(--border);border-radius:10px;
+    padding:12px 14px;min-width:120px;min-height:90px;
+    display:inline-flex;flex-direction:column;
+    transition:border-color .2s,background .2s;
+  }
+  .dropzone.dragover, #pool.dragover{border-color:var(--accent);background:#F0EEE8}
+  .czlabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:14px}
+  .czlabel .catname{color:var(--ink);font-family:var(--ui);font-size:12px;font-weight:500;letter-spacing:0}
+  .dots{display:flex;flex-wrap:wrap;align-content:flex-start;gap:10px;flex:1}
+  .zdot{
+    width:14px;height:14px;border-radius:50%;cursor:grab;
+    border:1.5px solid rgba(0,0,0,.15);
+    transition:transform .15s;
+  }
+  .zdot:hover{transform:scale(1.25)}
+  .zdot.dragging{opacity:.3}
+  #btnAddCategory{
+    align-self:flex-start;
+    font-family:var(--mono);font-size:11px;color:var(--dim);
+    background:none;border:1px solid var(--border);border-radius:6px;
+    padding:7px 14px;cursor:pointer;
+  }
+  #btnAddCategory:hover{border-color:var(--accent);color:var(--ink)}
+  .catDelete{cursor:pointer;color:var(--dim);font-family:var(--mono);font-size:10px}
+  .catDelete:hover{color:#B15C4F}
+
+  /* ---------- 折りたたみ式の一覧 ---------- */
+  #listToggle{
+    margin-top:40px;padding-top:20px;border-top:1px solid var(--border);
+    font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.05em;
+    cursor:pointer;user-select:none;
+  }
+  #listToggle:hover{color:var(--ink)}
+  #listSection{display:none;margin-top:16px}
+  #listSection.open{display:block}
+</style>
 </head>
-
 <body>
 
-<div class="container">
+<div class="wrap">
 
-<h1>Project Mirai Post</h1>
+  <header>
+    <h1>H゜me <span>— memo</span></h1>
+    <a id="universeLink" href="orbit01_firebase.html">◯ H゜meへ</a>
+  </header>
 
-<p>
-世界へ断片を投函する場所
-</p>
+  <div id="authRow">
+    <button id="btnSignIn">🔒 ログイン</button>
+    <span id="authWho" style="display:none"></span>
+  </div>
 
-<div id="authArea">
-  <button id="btnSignIn">🔒 ログインして投函する</button>
-  <div id="authWho" style="display:none"></div>
+  <div id="inputCard">
+    <div class="bar">
+      <div class="barLeft"><span id="noteCircle"></span></div>
+      <div class="barRight">
+        <span class="dot r" id="dotLoose" title="未定形テンプレート"></span><span class="dot y" id="dotList" title="リスト用テンプレート"></span><span class="dot b" id="dotPoem" title="詩・歌詞用テンプレート"></span><span class="dot g" id="dotIdea" title="アイデア用テンプレート"></span>
+      </div>
+    </div>
+    <div class="body">
+      <div class="prompt">
+        <textarea id="memoInput" rows="1" placeholder="思いついたことを、そのまま。"></textarea>
+      </div>
+
+      <div id="structuredFields"></div>
+
+      <div class="foot">
+        <span id="footHint">⏎ で改行 ・ 他をタップすると自動で保存されます</span>
+        <span id="cardDelete">削除</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="classifySection">
+    <div id="pool" class="dropzone" data-cat="">
+      <div class="czlabel">未分類</div>
+      <div class="dots"></div>
+    </div>
+    <div id="poolsRow">
+      <div id="categories"></div>
+      <button id="btnAddCategory">＋ 新しいプール</button>
+    </div>
+  </div>
+
+  <div id="listToggle">▸ 一覧</div>
+  <div id="listSection">
+    <div id="list"></div>
+    <div id="empty" style="display:none">まだメモがありません。上の欄から書き始めてください。</div>
+  </div>
+
 </div>
 
-<textarea id="body"
-          placeholder="思いついたことを、そのまま書く。整った文章でなくて大丈夫です。"></textarea>
+<div class="qmenu" id="qmenu"></div>
 
-<button id="btnPost" disabled>投函</button>
+<script type="module">
+import { initializeApp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, setDoc, getDoc }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-<p id="status"></p>
+// H゜me とまったく同じFirebaseプロジェクト・同じデータを共有する
+const firebaseConfig = {
+  apiKey: "AIzaSyDYoZqDdhyS2q3GPmvdrfotJYxnsLydiQg",
+  authDomain: "orbit-65a9b.firebaseapp.com",
+  projectId: "orbit-65a9b",
+  storageBucket: "orbit-65a9b.firebasestorage.app",
+  messagingSenderId: "967386787141",
+  appId: "1:967386787141:web:9a904e982e7daa44da622c"
+};
 
-<div id="resultCard" style="display:none"></div>
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+let db;
+try{
+  db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+}catch(e){ db = getFirestore(app); }
 
-</div>
+let currentUser = null;
+let notes = [];   // orbitData.notes と同じ形（宇宙モードとフィールド互換）
+let lines = [];    // orbitData.lines（引き継ぐだけ、ここでは編集しない）
+let categories = []; // [{id, name}] 分類の箱。noteは categoryId を持つ（null=未分類プール）
 
-<script type="module" src="app.js"></script>
-<script>
+const Q_META = {
+  idea:    {label:'アイデア', color:'#A8757F'},
+  nichijo: {label:'日常',     color:'#6E828C'},
+  kaji:    {label:'家事',     color:'#7C8A6E'},
+  shigoto: {label:'仕事',     color:'#8C7A5C'},
+};
+const Q_ORDER = ['idea','nichijo','kaji','shigoto'];
 
-if ("serviceWorker" in navigator) {
+const $ = (id) => document.getElementById(id);
+const listEl = $('list'), emptyEl = $('empty');
+const noteCircleEl = $('noteCircle');
+const btnSignIn = $('btnSignIn'), authWho = $('authWho');
+const memoInput = $('memoInput');
+const qmenu = $('qmenu');
 
-navigator.serviceWorker.register(
-"service-worker.js"
-);
+btnSignIn.addEventListener('click', () => signInWithRedirect(auth, new GoogleAuthProvider()));
+authWho.addEventListener('click', () => { if(confirm('ログアウトしますか？')) signOut(auth); });
+getRedirectResult(auth).catch(e => console.error('ログインエラー:', e));
 
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  if(user){
+    btnSignIn.style.display = 'none';
+    authWho.style.display = 'inline';
+    authWho.textContent = '✓ ' + (user.displayName || user.email);
+    memoInput.disabled = false;
+    memoInput.placeholder = '思いついたことを、そのまま。';
+    await loadFromCloud();
+    if(categories.length === 0){
+      categories = ['音楽','写真','アプリ開発','その他','不明'].map((name, i) =>
+        ({ id: 'cat_default_' + i, name })
+      );
+      requestSave();
+    }
+    render();
+  } else {
+    btnSignIn.style.display = 'inline-block';
+    authWho.style.display = 'none';
+    memoInput.disabled = true;
+    memoInput.placeholder = 'ログインすると書き込めます';
+    notes = []; render();
+  }
+});
+
+async function loadFromCloud(){
+  try{
+    const snap = await getDoc(doc(db, 'users', currentUser.uid));
+    if(snap.exists()){
+      const d = snap.data();
+      const cloud = d.orbitData || {};
+      notes = Array.isArray(cloud.notes) ? cloud.notes : [];
+      lines = Array.isArray(cloud.lines) ? cloud.lines : [];
+      categories = Array.isArray(cloud.categories) ? cloud.categories : [];
+    }
+  }catch(e){ console.error('読み込みエラー:', e); }
 }
 
+let saveTimer = null;
+function requestSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    if(!currentUser) return;
+    try{
+      await setDoc(doc(db, 'users', currentUser.uid), {
+        orbitData: {
+          notes: notes.map(n => ({
+            id:n.id, tag:n.tag||null, q:n.q, t:n.t, text:n.text, sub:n.sub||'',
+            type:n.type||null, categoryId:n.categoryId||null,
+            title:n.title||'', purpose:n.purpose||'', concept:n.concept||'',
+            keywords:Array.isArray(n.keywords)?n.keywords:[],
+            hybrid:n.hybrid||null, tentative:!!n.tentative, born:null,
+          })),
+          lines: lines.map(l => ({a:l.a, b:l.b, why:l.why||''})),
+          categories: categories.map(c => ({id:c.id, name:c.name})),
+          savedAt: new Date().toISOString(),
+        }
+      }, { merge:true });
+    }catch(e){ console.error('保存エラー:', e); }
+  }, 400);
+}
+
+function fmtDate(iso){
+  try{
+    const d = new Date(iso);
+    return d.toISOString().slice(0,10).replace(/-/g,'.');
+  }catch(e){ return ''; }
+}
+
+function preview(n){
+  if(n.title){
+    const sub = n.purpose || n.concept || '';
+    return { title: n.title.slice(0,40), sub: sub.slice(0,80) };
+  }
+  const lines = (n.text || '').split('\n');
+  const title = lines[0].slice(0, 40) || '(無題)';
+  const rest = (lines.length > 1 ? lines.slice(1).join(' ') : lines[0].slice(40)).trim();
+  return { title, sub: rest.slice(0, 80) };
+}
+
+function render(){
+  listEl.innerHTML = '';
+  const sorted = [...notes].filter(n => n.id !== editingNoteId).sort((a,b) => (b.t||0) - (a.t||0));
+  emptyEl.style.display = sorted.length ? 'none' : 'block';
+
+  for(const n of sorted){
+    const q = Q_META[n.q] || Q_META.idea;
+    const { title, sub } = preview(n);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.id = n.id;
+    card.innerHTML = `
+      <div class="row1">
+        <div class="left"><span class="titleCircle" style="background:${q.color}"></span><div class="title">${escapeHtml(title)}</div></div>
+        <div class="qtag" data-q="${n.q}" data-id="${n.id}"><i></i>${q.label}</div>
+      </div>
+      ${sub ? `<div class="sub">${escapeHtml(sub)}</div>` : ''}
+      <div class="meta"><span>${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span></div>
+    `;
+    card.addEventListener('click', (e) => {
+      if(e.target.closest('.qtag')) return; // タグのクリックは象限変更（別ハンドラ）
+      openCardForEdit(n.id);
+    });
+    listEl.appendChild(card);
+  }
+
+  listEl.querySelectorAll('.qtag').forEach(tag => {
+    tag.addEventListener('click', (e) => { e.stopPropagation(); openQMenu(e, tag); });
+  });
+
+  renderClassify();
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function openQMenu(e, tagEl){
+  const id = tagEl.dataset.id;
+  qmenu.innerHTML = Q_ORDER.map(q =>
+    `<div data-q="${q}"><i style="background:${Q_META[q].color}"></i>${Q_META[q].label}</div>`
+  ).join('');
+  const rect = tagEl.getBoundingClientRect();
+  qmenu.style.top = (window.scrollY + rect.bottom + 4) + 'px';
+  qmenu.style.left = (window.scrollX + rect.left) + 'px';
+  qmenu.classList.add('open');
+
+  qmenu.querySelectorAll('div').forEach(item => {
+    item.onclick = () => {
+      const note = notes.find(n => n.id === id);
+      if(note){ note.q = item.dataset.q; render(); requestSave(); }
+      qmenu.classList.remove('open');
+    };
+  });
+
+  const closeOnOutside = (ev) => {
+    if(!qmenu.contains(ev.target)){
+      qmenu.classList.remove('open');
+      document.removeEventListener('click', closeOnOutside);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', closeOnOutside), 0);
+}
+
+const TEMPLATES = {
+  idea: {
+    label: 'アイデア用',
+    fields: [
+      {key:'title', label:'タイトル', kind:'input', ph:'（空欄なら、メモの最初の一文が使われます）'},
+      {key:'purpose', label:'目的', kind:'textarea', rows:2, ph:'なぜこれを作りたいか、根っこにある気持ち'},
+      {key:'concept', label:'構想', kind:'textarea', rows:3, ph:'具体的にどう実現するか'},
+      {key:'keywords', label:'キーワード', kind:'input', ph:'カンマ区切りで（例: 素材, 声, 孤独）'},
+    ]
+  },
+  loose: {
+    label: '未定形',
+    fields: [
+      {key:'title', label:'テーマ', kind:'input', ph:'例：宗教を融合した新しいアート'},
+      {key:'purpose', label:'なぜ惹かれるか', kind:'textarea', rows:2, ph:'まだ形になっていなくていい、惹かれる理由'},
+      {key:'concept', label:'近いもの・連想', kind:'textarea', rows:3, ph:'似ていること、関連しそうなもの'},
+    ]
+  },
+  list: {
+    label: 'リスト',
+    fields: [
+      {key:'title', label:'リスト名', kind:'input', ph:'例：買い出しリスト'},
+      {key:'concept', label:'項目（1行ずつ）', kind:'textarea', rows:6, ph:'にんじん\n卵\n洗剤'},
+    ]
+  },
+  poem: {
+    label: '詩・歌詞',
+    fields: [
+      {key:'title', label:'タイトル', kind:'input', ph:'（空欄でも大丈夫です）'},
+      {key:'purpose', label:'モチーフ', kind:'textarea', rows:2, ph:'核になっている情景や感情'},
+      {key:'concept', label:'断片', kind:'textarea', rows:5, ph:'浮かんだ言葉やフレーズを、そのまま並べる'},
+      {key:'keywords', label:'キーワード', kind:'input', ph:'カンマ区切りで'},
+    ]
+  }
+};
+
+function renderFields(container, templateKey, values){
+  const tpl = TEMPLATES[templateKey];
+  container.innerHTML = '';
+  if(!tpl) return;
+  for(const f of tpl.fields){
+    const wrap = document.createElement('div');
+    wrap.className = 'field';
+    const label = document.createElement('div');
+    label.className = 'flabel';
+    label.textContent = f.label;
+    wrap.appendChild(label);
+    const el = document.createElement(f.kind === 'textarea' ? 'textarea' : 'input');
+    el.id = container.id + '_' + f.key;
+    el.dataset.key = f.key;
+    if(f.kind === 'textarea') el.rows = f.rows || 2;
+    else el.type = 'text';
+    el.placeholder = f.ph || '';
+    el.value = (values && values[f.key]) || '';
+    wrap.appendChild(el);
+    container.appendChild(wrap);
+  }
+}
+
+function readFields(container, templateKey){
+  const out = {title:'', purpose:'', concept:'', keywords:[]};
+  const tpl = TEMPLATES[templateKey];
+  if(!tpl) return out;
+  for(const f of tpl.fields){
+    const el = document.getElementById(container.id + '_' + f.key);
+    if(!el) continue;
+    if(f.key === 'keywords') out.keywords = el.value.split(',').map(s=>s.trim()).filter(Boolean);
+    else out[f.key] = el.value.trim();
+  }
+  return out;
+}
+
+const structuredFieldsEl = $('structuredFields');
+let activeTemplate = null;
+
+/* ---------- 分類：既存システム（AI不使用）による自動振り分け ----------
+   文字のNグラム（2文字の連なり）の重なり具合だけで類似度を測る、
+   昔からある古典的な手法（Dice係数）。意味の理解はしていない。 */
+function ngramSet(text, n=2){
+  const clean = (text || '').replace(/\s+/g, '');
+  const set = new Set();
+  for(let i=0; i<=clean.length-n; i++) set.add(clean.slice(i, i+n));
+  return set;
+}
+function diceSimilarity(a, b){
+  const ga = ngramSet(a), gb = ngramSet(b);
+  if(ga.size===0 || gb.size===0) return 0;
+  let inter = 0;
+  for(const g of ga) if(gb.has(g)) inter++;
+  return (2*inter) / (ga.size + gb.size);
+}
+function noteFullText(n){
+  return [n.title, n.text, n.purpose, n.concept, (n.keywords||[]).join(' ')].filter(Boolean).join(' ');
+}
+const SIMILARITY_THRESHOLD = 0.15; // 経験的な目安。厳密なチューニングはしていない
+
+function autoClassify(note){
+  const noteTxt = noteFullText(note);
+  if(!noteTxt.trim()) return null;
+  let best = null, bestScore = 0;
+  for(const cat of categories){
+    const members = notes.filter(n => n.categoryId === cat.id && n.id !== note.id);
+    for(const m of members){
+      const score = diceSimilarity(noteTxt, noteFullText(m));
+      if(score > bestScore){ bestScore = score; best = cat.id; }
+    }
+  }
+  return bestScore >= SIMILARITY_THRESHOLD ? best : null;
+}
+
+function addMemo(){
+  const text = memoInput.value.trim();
+  const f = readFields(structuredFieldsEl, activeTemplate);
+
+  if(!currentUser) return;
+
+  if(editingNoteId){
+    // 編集中のメモを更新する（新規作成はしない）
+    const note = notes.find(n => n.id === editingNoteId);
+    if(note){
+      if(!text && !f.title){
+        // 空にして離れた場合は削除する（Keepと同じ挙動）
+        notes = notes.filter(n => n.id !== editingNoteId);
+      } else {
+        note.text = text;
+        note.type = activeTemplate;
+        note.title = f.title; note.purpose = f.purpose; note.concept = f.concept; note.keywords = f.keywords;
+        note.categoryId = autoClassify(note);
+      }
+      requestSave();
+    }
+    exitEditMode();
+    render();
+    return;
+  }
+
+  if(!text && !f.title) return; // 何も書かれていなければ何もしない
+
+  const now = Date.now();
+  const newNote = {
+    id: 'memo_' + now.toString(36) + Math.random().toString(36).slice(2,5),
+    tag: null,
+    q: 'idea',            // 初期値。カードのタグをタップして後から変更できる
+    t: now,
+    text: text,
+    sub: '',
+    type: activeTemplate,
+    title: f.title, purpose: f.purpose, concept: f.concept, keywords: f.keywords,
+    categoryId: null,
+    hybrid: null, tentative:false, born:null,
+    createdAt: new Date(now).toISOString(),
+  };
+  newNote.categoryId = autoClassify(newNote);
+
+  playConvergeEffect(() => {
+    notes.push(newNote);
+    memoInput.value = '';
+    activeTemplate = null;
+    structuredFieldsEl.innerHTML = '';
+    expanded = false; collapsed = false;
+    inputCard.classList.remove('expanded','collapsed');
+    document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
+    autoGrow();
+    render();
+    requestSave();
+  });
+}
+
+function playConvergeEffect(onDone){
+  // 「メモ欄の左上の〇」が、内容を包み込みながら小さくなり、
+  // 一覧の先頭カード（新しいメモは常に先頭に来る）のタイトル横の〇へ着地する。
+  const startRect = noteCircleEl.getBoundingClientRect();
+  const listRect = listEl.getBoundingClientRect();
+
+  const dot = document.createElement('div');
+  dot.className = 'converge-dot';
+  dot.style.left = startRect.left + 'px';
+  dot.style.top  = startRect.top + 'px';
+  dot.style.width  = startRect.width + 'px';
+  dot.style.height = startRect.height + 'px';
+  dot.style.opacity = '0.9';
+  dot.style.background = Q_META.idea.color;
+  document.body.appendChild(dot);
+
+  // 先頭カードのタイトル〇のおおよその位置（カードのpadding: 16px 18px を基準に近似）
+  const targetX = listRect.left + 18 + 4.5;
+  const targetY = listRect.top + 16 + 8;
+
+  requestAnimationFrame(() => {
+    dot.style.left = (targetX - 4.5) + 'px';
+    dot.style.top  = (targetY - 4.5) + 'px';
+    dot.style.width  = '9px';
+    dot.style.height = '9px';
+  });
+
+  setTimeout(() => {
+    dot.remove();
+    onDone();
+  }, 560);
+}
+
+memoInput.addEventListener('keydown', (e) => {
+  // ⏎は常に改行。Ctrl/Cmd+⏎だけ、その場で確定させたい人向けのショートカット。
+  if(e.key === 'Enter' && (e.metaKey || e.ctrlKey)){
+    e.preventDefault();
+    addMemo();
+  }
+});
+
+const inputCard = $('inputCard');
+inputCard.addEventListener('focusout', () => {
+  // カード全体からフォーカスが完全に外れた時だけ保存する
+  // （タイトル欄→目的欄、のようにカード内を移動している間は保存しない）
+  setTimeout(() => {
+    if(!inputCard.contains(document.activeElement)){
+      addMemo();
+    }
+  }, 0);
+});
+
+function autoGrow(){
+  memoInput.style.height = 'auto';
+  const cap = expanded ? 480 : 180;
+  memoInput.style.height = Math.min(memoInput.scrollHeight, cap) + 'px';
+}
+memoInput.addEventListener('input', autoGrow);
+
+/* ---------- ウィンドウの信号機ドット：それぞれ別のテンプレート ---------- */
+let collapsed = false, expanded = false;
+
+function toggleTemplate(key){
+  const dotEl = {idea:$('dotIdea'), loose:$('dotLoose'), list:$('dotList'), poem:$('dotPoem')}[key];
+  if(activeTemplate === key){
+    // 同じドットをもう一度押したら閉じる（内容は消さずそのまま保持）
+    activeTemplate = null;
+    expanded = false;
+    inputCard.classList.remove('expanded');
+    document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
+    structuredFieldsEl.innerHTML = '';
+    return;
+  }
+  const prevValues = readFields(structuredFieldsEl, activeTemplate);
+  activeTemplate = key;
+  expanded = true; collapsed = false;
+  inputCard.classList.add('expanded');
+  inputCard.classList.remove('collapsed');
+  document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
+  dotEl.classList.add('active');
+  renderFields(structuredFieldsEl, activeTemplate, prevValues);
+  autoGrow();
+}
+
+$('dotIdea').addEventListener('click', () => toggleTemplate('idea'));
+$('dotLoose').addEventListener('click', () => toggleTemplate('loose'));
+$('dotList').addEventListener('click', () => toggleTemplate('list'));
+$('dotPoem').addEventListener('click', () => toggleTemplate('poem'));
+
+/* ---------- 編集ページ ---------- */
+let editingNoteId = null;
+const cardDeleteEl = $('cardDelete');
+
+function openCardForEdit(id){
+  const note = notes.find(n => n.id === id);
+  if(!note) return;
+  editingNoteId = id;
+
+  memoInput.value = note.text || '';
+  activeTemplate = note.type || null;
+  document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
+  if(activeTemplate){
+    expanded = true; inputCard.classList.add('expanded');
+    const dotEl = {idea:$('dotIdea'), loose:$('dotLoose'), list:$('dotList'), poem:$('dotPoem')}[activeTemplate];
+    if(dotEl) dotEl.classList.add('active');
+    renderFields(structuredFieldsEl, activeTemplate, note);
+  } else {
+    expanded = false; inputCard.classList.remove('expanded');
+    structuredFieldsEl.innerHTML = '';
+  }
+  inputCard.classList.add('editing');
+  autoGrow();
+  window.scrollTo({top:0, behavior:'smooth'});
+  setTimeout(() => memoInput.focus(), 200);
+  render();
+}
+
+function exitEditMode(){
+  editingNoteId = null;
+  inputCard.classList.remove('editing','expanded');
+  activeTemplate = null;
+  memoInput.value = '';
+  structuredFieldsEl.innerHTML = '';
+  document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
+  autoGrow();
+}
+
+cardDeleteEl.addEventListener('click', () => {
+  if(!editingNoteId) return;
+  if(!confirm('このメモを削除しますか？')) return;
+  notes = notes.filter(n => n.id !== editingNoteId);
+  requestSave();
+  exitEditMode();
+  render();
+});
+
+const poolEl = $('pool'), categoriesEl = $('categories');
+
+function makeZDot(note){
+  const q = Q_META[note.q] || Q_META.idea;
+  const dot = document.createElement('div');
+  dot.className = 'zdot';
+  dot.style.background = q.color;
+  dot.title = (note.title || note.text || '').slice(0, 30);
+  dot.draggable = true;
+  dot.dataset.id = note.id;
+  dot.addEventListener('dragstart', (e) => {
+    e.dataTransfer.setData('text/plain', note.id);
+    setTimeout(() => dot.classList.add('dragging'), 0);
+  });
+  dot.addEventListener('dragend', () => dot.classList.remove('dragging'));
+  dot.addEventListener('click', () => openCardForEdit(note.id));
+  return dot;
+}
+
+function wireDropzone(el, categoryId){
+  el.addEventListener('dragover', (e) => { e.preventDefault(); el.classList.add('dragover'); });
+  el.addEventListener('dragleave', () => el.classList.remove('dragover'));
+  el.addEventListener('drop', (e) => {
+    e.preventDefault();
+    el.classList.remove('dragover');
+    const id = e.dataTransfer.getData('text/plain');
+    const note = notes.find(n => n.id === id);
+    if(note){
+      note.categoryId = categoryId;
+      requestSave();
+      renderClassify();
+    }
+  });
+}
+
+function renderClassify(){
+  const poolDots = poolEl.querySelector('.dots');
+  poolDots.innerHTML = '';
+  notes.filter(n => !n.categoryId).forEach(n => poolDots.appendChild(makeZDot(n)));
+  wireDropzone(poolEl, null);
+
+  categoriesEl.innerHTML = '';
+  const countOf = (cat) => notes.filter(n => n.categoryId === cat.id).length;
+  const sortedCats = [...categories].sort((a,b) => countOf(b) - countOf(a));
+  sortedCats.forEach(cat => {
+    const box = document.createElement('div');
+    box.className = 'dropzone';
+    box.innerHTML = `
+      <div class="czlabel">
+        <span class="catname">${escapeHtml(cat.name)}</span>
+        <span class="catDelete" data-cat="${cat.id}">削除</span>
+      </div>
+      <div class="dots"></div>
+    `;
+    const dotsWrap = box.querySelector('.dots');
+    notes.filter(n => n.categoryId === cat.id).forEach(n => dotsWrap.appendChild(makeZDot(n)));
+    wireDropzone(box, cat.id);
+    box.querySelector('.catDelete').addEventListener('click', () => {
+      if(!confirm(`「${cat.name}」を削除しますか？（中のメモは未分類プールに戻ります）`)) return;
+      notes.forEach(n => { if(n.categoryId === cat.id) n.categoryId = null; });
+      categories = categories.filter(c => c.id !== cat.id);
+      requestSave();
+      renderClassify();
+    });
+    categoriesEl.appendChild(box);
+  });
+}
+
+$('btnAddCategory').addEventListener('click', () => {
+  const name = prompt('新しいカテゴリの名前は？');
+  if(!name || !name.trim()) return;
+  categories.push({ id: 'cat_' + Date.now().toString(36), name: name.trim() });
+  requestSave();
+  renderClassify();
+});
+
+const listToggleEl = $('listToggle'), listSectionEl = $('listSection');
+listToggleEl.addEventListener('click', () => {
+  const open = listSectionEl.classList.toggle('open');
+  listToggleEl.textContent = (open ? '▾ 一覧' : '▸ 一覧');
+});
+
+render();
 </script>
 </body>
-
 </html>

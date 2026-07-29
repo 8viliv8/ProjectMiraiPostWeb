@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H゜me</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F3EF;
+    --surface:#FAF9F6;
+    --border:#E3E0D8;
+    --ink:#2C2E31;
+    --dim:#8E8B82;
+    --accent:#7A8B83;
+    --none:#C7C3B8;
+    --mono:'JetBrains Mono',monospace;
+    --ui:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--ui)}
+  canvas{display:block;position:fixed;inset:0;cursor:grab}
+  canvas.dragging{cursor:grabbing}
+
+  .hud{position:fixed;z-index:10}
+  #title{top:18px;left:20px;font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.05em}
+  #title a{color:var(--dim);text-decoration:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;margin-left:10px;font-size:11px}
+  #title a:hover{color:var(--ink);border-color:var(--accent);background:var(--surface)}
+
+  #authWidget{top:18px;right:20px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+  #authWidget button{font-family:var(--mono);font-size:11px;color:var(--dim);background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer}
+  #authWidget button:hover{border-color:var(--accent);color:var(--ink)}
+  #authWho{cursor:pointer}
+  #status{position:fixed;top:50px;right:20px;z-index:10;font-family:var(--mono);font-size:10px;color:var(--dim)}
+
+  #hoverLabel{
+    position:fixed;z-index:15;pointer-events:none;
+    font-family:var(--mono);font-size:11px;color:var(--ink);
+    background:var(--surface);border:1px solid var(--border);border-radius:6px;
+    padding:4px 10px;transform:translate(-50%,-130%);
+    display:none;white-space:nowrap;
+  }
+
+  /* ---------- カード（memoアプリと共通の見た目） ---------- */
+  #cardOverlay{
+    position:fixed;inset:0;background:rgba(244,243,239,.72);
+    display:none;align-items:center;justify-content:center;z-index:40;
+    backdrop-filter:blur(2px);
+  }
+  #cardOverlay.open{display:flex}
+  #orbitCard{
+    width:min(480px,92vw);max-height:82vh;overflow:auto;
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    box-shadow:0 30px 70px -20px rgba(0,0,0,.25);
+  }
+  #orbitCard .bar{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#EFEDE7;border-bottom:1px solid var(--border)}
+  #orbitCard .dotrow span{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
+  #orbitCard .dot.r{background:#FF5F57}
+  #orbitCard .dot.y{background:#FEBC2E}
+  #orbitCard .dot.g{background:#28C840}
+  #orbitCard .barRight{font-family:var(--mono);font-size:10px;color:#B15C4F;cursor:pointer}
+  #orbitCard .body{padding:18px 20px}
+  #orbitCard textarea#cardMemo{
+    width:100%;min-height:60px;border:none;outline:none;resize:none;background:transparent;
+    font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.7;margin-bottom:6px;
+  }
+  #orbitCard .field{margin-bottom:14px}
+  #orbitCard .flabel{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:#B4B0A6;margin-bottom:4px}
+  #orbitCard .field input, #orbitCard .field textarea{
+    width:100%;border:none;outline:none;resize:none;background:transparent;
+    font-family:var(--ui);font-size:13px;color:var(--ink);line-height:1.7;
+  }
+  #orbitCard .sendRow{display:flex;gap:8px;margin-top:18px;padding-top:16px;border-top:1px dashed var(--border)}
+  #orbitCard .sendRow button{
+    font-family:var(--mono);font-size:11px;color:var(--dim);background:none;
+    border:1px solid var(--border);border-radius:6px;padding:7px 14px;cursor:pointer;
+  }
+  #orbitCard .sendRow button:hover{border-color:var(--accent);color:var(--ink)}
+  #orbitCard .closeRow{display:flex;justify-content:flex-end;padding:12px 20px 16px}
+  #orbitCard .closeRow button{
+    font-family:var(--mono);font-size:11px;color:#fff;background:var(--accent);
+    border:none;border-radius:6px;padding:7px 16px;cursor:pointer;
+  }
+
+  /* ---------- 通知カード（右下からふっと現れる） ---------- */
+  #notify{
+    position:fixed;right:20px;bottom:-260px;z-index:30;width:min(360px,88vw);
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    box-shadow:0 20px 50px -20px rgba(0,0,0,.25);
+    transition:bottom .5s cubic-bezier(.2,.9,.3,1);
+  }
+  #notify.show{bottom:20px}
+  #notify .bar{display:flex;gap:6px;padding:9px 12px;background:#EFEDE7;border-bottom:1px solid var(--border);border-radius:10px 10px 0 0}
+  #notify .bar span{width:9px;height:9px;border-radius:50%}
+  #notify .bar span.r{background:#FF5F57} #notify .bar span.y{background:#FEBC2E} #notify .bar span.g{background:#28C840}
+  #notify .body{padding:14px 16px}
+  #notify .combo{font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.7}
+  #notify .result{font-size:12.5px;color:var(--ink);line-height:1.7}
+  #notify .actions{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+  #notify button{
+    font-family:var(--mono);font-size:11px;color:var(--dim);background:none;
+    border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;
+  }
+  #notify button.adopt{color:#fff;background:var(--accent);border-color:var(--accent)}
+  #notify button:hover{opacity:.85}
+
+  /* ---------- プール凡例（左下） ---------- */
+  #legend{
+    left:20px;bottom:20px;
+    font-family:var(--mono);font-size:11px;color:var(--ink);
+    display:flex;flex-direction:column;gap:6px;
+  }
+  #legend .item{display:flex;align-items:center;gap:8px}
+  #legend .sw{width:9px;height:9px;border-radius:50%;flex:none}
+
+  /* ---------- 今日パネル（中心の〇から開く） ---------- */
+  #todayPanel{
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    z-index:35;display:none;
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:16px 18px;box-shadow:0 20px 50px -20px rgba(0,0,0,.25);
+    min-width:180px;
+  }
+  #todayPanel.open{display:block}
+  #todayPanel .flabel{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:#B4B0A6;margin-bottom:4px}
+
+  /* ---------- 背景画像のカスタマイズ ---------- */
+  #bgControl{left:20px;bottom:130px;font-family:var(--mono);font-size:10px;color:var(--dim);display:flex;gap:10px;align-items:center}
+  #bgControl label{cursor:pointer;border:1px solid var(--border);border-radius:6px;padding:5px 10px;background:var(--surface)}
+  #bgControl label:hover{border-color:var(--accent);color:var(--ink)}
+  #bgControl a{color:var(--dim);cursor:pointer}
+  #bgControl a:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="hud" id="title">H゜me<a id="memoLink" href="memo_home.html">← memoへ</a></div>
+
+<div class="hud" id="authWidget">
+  <button id="btnSignIn">🔒 ログイン</button>
+  <span id="authWho" style="display:none"></span>
+</div>
+<div id="status"></div>
+
+<div class="hud" id="legend"></div>
+
+<div class="hud" id="bgControl">
+  <label for="bgFile">🖼 背景画像</label>
+  <input type="file" id="bgFile" accept="image/*" style="display:none">
+  <a id="bgReset">リセット</a>
+</div>
+
+<div id="todayPanel"></div>
+
+<canvas id="cv"></canvas>
+<div id="hoverLabel"></div>
+
+<div id="cardOverlay">
+  <div id="orbitCard">
+    <div class="bar">
+      <div class="dotrow"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+      <span class="barRight" id="cardDelete">削除</span>
+    </div>
+    <div class="body">
+      <textarea id="cardMemo" rows="2" placeholder="メモ"></textarea>
+      <div id="cardFields"></div>
+      <div class="sendRow">
+        <button id="btnCopyMd">📋 コピー</button>
+        <button id="btnDownloadMd">⬇ .mdダウンロード</button>
+      </div>
+    </div>
+    <div class="closeRow"><button id="btnCardClose">閉じる</button></div>
+  </div>
+</div>
+
+<div id="notify">
+  <div class="bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+  <div class="body">
+    <div class="combo" id="notifyCombo"></div>
+    <div class="result" id="notifyResult"></div>
+    <div class="actions">
+      <button id="btnNotifySkip">見送り</button>
+      <button class="adopt" id="btnNotifyAdopt">採用</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, setDoc, getDoc }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDYoZqDdhyS2q3GPmvdrfotJYxnsLydiQg",
+  authDomain: "orbit-65a9b.firebaseapp.com",
+  projectId: "orbit-65a9b",
+  storageBucket: "orbit-65a9b.firebasestorage.app",
+  messagingSenderId: "967386787141",
+  appId: "1:967386787141:web:9a904e982e7daa44da622c"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+let db;
+try{ db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); }
+catch(e){ db = getFirestore(app); }
+
+let currentUser = null;
+window.OrbitCloud = {
+  async load(){
+    if(!currentUser) return null;
+    const snap = await getDoc(doc(db,'users',currentUser.uid));
+    return snap.exists() ? (snap.data().orbitData || null) : null;
+  },
+  async save(payload){
+    if(!currentUser) return false;
+    try{
+      await setDoc(doc(db,'users',currentUser.uid), { orbitData: payload }, { merge:true });
+      return true;
+    }catch(e){ console.error('保存エラー:', e); return false; }
+  },
+  signIn: () => signInWithRedirect(auth, new GoogleAuthProvider()),
+  signOut: () => signOut(auth),
+};
+
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+  window.dispatchEvent(new CustomEvent('orbit-auth', { detail:{ user } }));
+});
+getRedirectResult(auth).catch(e => console.error('ログインエラー:', e));
+</script>
+
+<script>
+/* =========================================================
+   H゜me — 引力でつながる場所
+   星・宇宙のモチーフはやめ、XLN Audio「XO」のSpace Viewを参考に、
+   プール（分類）を重力の中心とし、似ているメモ同士がさらに引き合う
+   力学シミュレーションで配置する。
+   ========================================================= */
+
+const $ = (id) => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+let W, H, DPR;
+function resize(){
+  DPR = window.devicePixelRatio || 1;
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = W*DPR; cv.height = H*DPR;
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+const PALETTE = ['#A8757F','#6E828C','#7C8A6E','#8C7A5C','#8C6F9E','#5C8C8C','#9E8C5C','#6E7C9E'];
+const NONE_COLOR = '#C7C3B8';
+
+let notes = [];
+let lines = [];
+let categories = [];
+
+/* ---------- Nグラム類似度（memoアプリと同じ、AIは使わない） ---------- */
+function ngramSet(text, n=2){
+  const clean = (text||'').replace(/\s+/g,'');
+  const set = new Set();
+  for(let i=0;i<=clean.length-n;i++) set.add(clean.slice(i,i+n));
+  return set;
+}
+function diceSimilarity(a,b){
+  const ga=ngramSet(a), gb=ngramSet(b);
+  if(ga.size===0||gb.size===0) return 0;
+  let inter=0; for(const g of ga) if(gb.has(g)) inter++;
+  return (2*inter)/(ga.size+gb.size);
+}
+function noteFullText(n){
+  return [n.title,n.text,n.purpose,n.concept,(n.keywords||[]).join(' ')].filter(Boolean).join(' ');
+}
+function autoClassify(note){
+  const txt = noteFullText(note);
+  if(!txt.trim()) return null;
+  let best=null, bestScore=0;
+  for(const cat of categories){
+    for(const m of notes.filter(n=>n.categoryId===cat.id && n.id!==note.id)){
+      const s = diceSimilarity(txt, noteFullText(m));
+      if(s>bestScore){ bestScore=s; best=cat.id; }
+    }
+  }
+  return bestScore>=0.15 ? best : null;
+}
+
+function sortedCategories(){
+  const countOf = (c) => notes.filter(n=>n.categoryId===c.id).length;
+  return [...categories].sort((a,b)=>countOf(b)-countOf(a));
+}
+function colorFor(categoryId){
+  if(!categoryId) return NONE_COLOR;
+  const sorted = sortedCategories();
+  const idx = sorted.findIndex(c=>c.id===categoryId);
+  return idx>=0 ? PALETTE[idx % PALETTE.length] : NONE_COLOR;
+}
+
+/* ---------- 重力の中心（プールが大きいほど中心に近い。黄金角で自然に分布） ---------- */
+function poolAnchors(){
+  const sorted = sortedCategories();
+  const anchors = {};
+  sorted.forEach((c, i) => {
+    const angle = i * 137.5 * Math.PI/180;
+    const radius = 130 * Math.sqrt(i);   // プールごとにはっきり分離するよう間隔を広げた
+    anchors[c.id] = { x: radius*Math.cos(angle), y: radius*Math.sin(angle) };
+  });
+  return anchors;
+}
+
+/* ---------- 物理シミュレーション ---------- */
+function stepSimulation(){
+  const anchors = poolAnchors();
+  const n = notes.length;
+
+  for(let i=0;i<n;i++){
+    const a = notes[i];
+    if(a.vx===undefined){ a.vx=0; a.vy=0; }
+    if(a.sx===undefined){ a.sx = a.x||0; a.sy = a.y||0; }
+
+    let tx, ty;
+    if(a.categoryId && anchors[a.categoryId]){
+      tx = anchors[a.categoryId].x; ty = anchors[a.categoryId].y;
+    } else { tx = 0; ty = 0; }
+    a.vx += (tx - a.sx) * 0.004;
+    a.vy += (ty - a.sy) * 0.004;
+
+    for(let j=0;j<n;j++){
+      if(i===j) continue;
+      const b = notes[j];
+      const dx = a.sx-b.sx, dy = a.sy-b.sy;
+      const dist = Math.sqrt(dx*dx+dy*dy) || 0.01;
+      if(dist < 40){
+        const push = (40-dist)/dist * 0.6;
+        a.vx += dx*push*0.02; a.vy += dy*push*0.02;
+      }
+      if(a._simCache && a._simCache[j]!==undefined){
+        const sim = a._simCache[j];
+        if(sim > 0.12 && dist > 30){
+          a.vx -= dx*sim*0.0015; a.vy -= dy*sim*0.0015;
+        }
+      }
+    }
+
+    a.vx *= 0.85; a.vy *= 0.85;
+    a.sx += a.vx; a.sy += a.vy;
+  }
+}
+
+function cacheSimilarities(){
+  const n = notes.length;
+  for(let i=0;i<n;i++){
+    notes[i]._simCache = notes[i]._simCache || {};
+    for(let j=0;j<n;j++){
+      if(i===j) continue;
+      if(notes[i]._simCache[j]===undefined){
+        notes[i]._simCache[j] = diceSimilarity(noteFullText(notes[i]), noteFullText(notes[j]));
+      }
+    }
+  }
+}
+
+/* ---------- 描画 ---------- */
+let selectedId = null;
+let tGlobal = 0;
+
+function renderLegend(){
+  const legendEl = $('legend');
+  const sorted = sortedCategories();
+  const countOf = (id) => notes.filter(n=>n.categoryId===id).length;
+  const unclassifiedCount = notes.filter(n=>!n.categoryId).length;
+  let html = sorted.map((c,i) => `
+    <div class="item"><span class="sw" style="background:${PALETTE[i%PALETTE.length]}"></span>${c.name}（${countOf(c.id)}件）</div>
+  `).join('');
+  html += `<div class="item"><span class="sw" style="background:${NONE_COLOR}"></span>未分類（${unclassifiedCount}件）</div>`;
+  legendEl.innerHTML = html;
+}
+
+/* ---------- カメラ（拡大縮小・パン） ---------- */
+const cam = { x:0, y:0, scale:1 };
+const TITLE_ZOOM = 1.6; // これ以上拡大すると常時タイトルが見えるようにする
+
+function worldToScreen(wx, wy){
+  return { x: W/2 + cam.x + wx*cam.scale, y: H/2 + cam.y + wy*cam.scale };
+}
+function screenToWorld(px, py){
+  return { x: (px - W/2 - cam.x)/cam.scale, y: (py - H/2 - cam.y)/cam.scale };
+}
+
+cv.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const before = screenToWorld(e.clientX, e.clientY);
+  const factor = Math.exp(-e.deltaY * 0.001);
+  cam.scale = Math.min(6, Math.max(0.3, cam.scale * factor));
+  const after = worldToScreen(before.x, before.y);
+  cam.x += e.clientX - after.x;
+  cam.y += e.clientY - after.y;
+}, { passive:false });
+
+let dragging = false, dragStart = null;
+cv.addEventListener('mousedown', (e) => {
+  dragging = true; dragStart = { x:e.clientX, y:e.clientY, camX:cam.x, camY:cam.y };
+  cv.classList.add('dragging');
+});
+window.addEventListener('mousemove', (e) => {
+  if(!dragging) return;
+  cam.x = dragStart.camX + (e.clientX - dragStart.x);
+  cam.y = dragStart.camY + (e.clientY - dragStart.y);
+});
+window.addEventListener('mouseup', () => { dragging = false; cv.classList.remove('dragging'); });
+
+/* ---------- タッチ操作（iPhone等）: 1本指でパン、2本指でピンチ拡大縮小 ---------- */
+let touchMode = null; // 'pan' | 'pinch'
+let touchStart = null;
+let pinchStartDist = null, pinchStartScale = null, pinchCenter = null;
+
+function touchDist(t0, t1){
+  return Math.hypot(t0.clientX-t1.clientX, t0.clientY-t1.clientY);
+}
+cv.addEventListener('touchstart', (e) => {
+  if(e.touches.length === 1){
+    touchMode = 'pan';
+    const t = e.touches[0];
+    touchStart = { x:t.clientX, y:t.clientY, camX:cam.x, camY:cam.y };
+    dragMoved = 0;
+  } else if(e.touches.length === 2){
+    touchMode = 'pinch';
+    pinchStartDist = touchDist(e.touches[0], e.touches[1]);
+    pinchStartScale = cam.scale;
+    pinchCenter = {
+      x:(e.touches[0].clientX+e.touches[1].clientX)/2,
+      y:(e.touches[0].clientY+e.touches[1].clientY)/2,
+    };
+  }
+}, { passive:true });
+
+cv.addEventListener('touchmove', (e) => {
+  if(touchMode === 'pan' && e.touches.length === 1){
+    e.preventDefault();
+    const t = e.touches[0];
+    cam.x = touchStart.camX + (t.clientX - touchStart.x);
+    cam.y = touchStart.camY + (t.clientY - touchStart.y);
+    dragMoved += Math.abs(t.clientX-touchStart.x) + Math.abs(t.clientY-touchStart.y);
+  } else if(touchMode === 'pinch' && e.touches.length === 2){
+    e.preventDefault();
+    const dist = touchDist(e.touches[0], e.touches[1]);
+    const before = screenToWorld(pinchCenter.x, pinchCenter.y);
+    cam.scale = Math.min(6, Math.max(0.3, pinchStartScale * (dist/pinchStartDist)));
+    const after = worldToScreen(before.x, before.y);
+    cam.x += pinchCenter.x - after.x;
+    cam.y += pinchCenter.y - after.y;
+  }
+}, { passive:false });
+
+cv.addEventListener('touchend', () => { touchMode = null; });
+
+/* ---------- 背景画像（このブラウザだけに保存。Firebaseとは同期しない） ---------- */
+let bgImage = null;
+function loadBgFromStorage(){
+  const dataUrl = localStorage.getItem('orbitBgImage');
+  if(!dataUrl) return;
+  const img = new Image();
+  img.onload = () => { bgImage = img; };
+  img.src = dataUrl;
+}
+loadBgFromStorage();
+
+$('bgFile').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{ localStorage.setItem('orbitBgImage', reader.result); }
+    catch(err){ console.warn('背景画像の保存に失敗（サイズが大きすぎる可能性）:', err); }
+    const img = new Image();
+    img.onload = () => { bgImage = img; };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+$('bgReset').addEventListener('click', () => {
+  bgImage = null;
+  localStorage.removeItem('orbitBgImage');
+});
+
+function drawBackground(){
+  ctx.fillStyle = '#F4F3EF';
+  ctx.fillRect(0,0,W,H);
+  if(bgImage){
+    const scale = Math.max(W/bgImage.width, H/bgImage.height);
+    const iw = bgImage.width*scale, ih = bgImage.height*scale;
+    ctx.drawImage(bgImage, (W-iw)/2, (H-ih)/2, iw, ih);
+    // 写真の上に薄く白を重ね、点や線が読みやすいようにする
+    ctx.fillStyle = 'rgba(244,243,239,0.78)';
+    ctx.fillRect(0,0,W,H);
+  }
+}
+
+function draw(){
+  tGlobal += 1/60;
+  ctx.clearRect(0,0,W,H);
+  drawBackground();
+
+  stepSimulation();
+
+  // 引力線（点線 + 行き来する光の粒。将来、AIの組み合わせ提案中は赤くする想定でl.activeを見る）
+  ctx.lineWidth = 1;
+  for(let li=0; li<lines.length; li++){
+    const l = lines[li];
+    const a = notes.find(nn=>nn.id===l.a), b = notes.find(nn=>nn.id===l.b);
+    if(!a||!b) continue;
+    const pa = worldToScreen(a.sx, a.sy), pb = worldToScreen(b.sx, b.sy);
+    const active = !!l.active;
+    ctx.strokeStyle = active ? 'rgba(196,90,80,0.55)' : 'rgba(122,139,131,0.35)';
+    ctx.setLineDash([3,5]);
+    ctx.lineDashOffset = -tGlobal*8;
+    ctx.beginPath();
+    ctx.moveTo(pa.x, pa.y);
+    ctx.lineTo(pb.x, pb.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 行き来する光の粒（情報が両方向に流れているイメージ）
+    const phase = li*0.7;
+    const u = (Math.sin(tGlobal*0.6 + phase) + 1) / 2; // 0〜1を往復
+    const px = pa.x + (pb.x-pa.x)*u, py = pa.y + (pb.y-pa.y)*u;
+    ctx.beginPath();
+    ctx.arc(px, py, active ? 3 : 2.2, 0, 6.28);
+    ctx.fillStyle = active ? 'rgba(196,90,80,0.9)' : 'rgba(122,139,131,0.6)';
+    ctx.fill();
+  }
+
+  // 中心の光（ゆっくり明滅する、ラベルなしの単一の〇）
+  const self = worldToScreen(0,0);
+  const breathe = 0.55 + 0.35*Math.sin(tGlobal*0.7);
+  ctx.beginPath();
+  ctx.arc(self.x, self.y, 5*cam.scale, 0, 6.28);
+  ctx.fillStyle = `rgba(44,46,49,${breathe})`;
+  ctx.fill();
+
+  // ノート本体
+  const showTitles = cam.scale >= TITLE_ZOOM;
+  for(const n of notes){
+    const p = worldToScreen(n.sx, n.sy);
+    const r = (n.id===selectedId ? 7.5 : 6) * Math.min(cam.scale, 2);
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,r,0,6.28);
+    ctx.fillStyle = colorFor(n.categoryId);
+    ctx.fill();
+    if(n.id===selectedId){
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,r+4,0,6.28);
+      ctx.strokeStyle = 'rgba(44,46,49,0.4)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    if(showTitles){
+      const label = n.title || (n.text||'').slice(0,16) || '';
+      if(label){
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#2C2E31';
+        ctx.textAlign = 'left';
+        ctx.fillText(label, p.x + r + 6, p.y + 3);
+      }
+    }
+  }
+
+  if(selectedId){
+    const n = notes.find(nn=>nn.id===selectedId);
+    if(n){
+      const p = worldToScreen(n.sx, n.sy);
+      hoverLabel.style.left = p.x+'px';
+      hoverLabel.style.top = p.y+'px';
+    }
+  }
+
+  requestAnimationFrame(draw);
+}
+
+function noteAt(px, py){
+  const showTitles = cam.scale >= TITLE_ZOOM;
+  ctx.font = '10px "JetBrains Mono", monospace';
+  for(let i=notes.length-1;i>=0;i--){
+    const n = notes[i];
+    const p = worldToScreen(n.sx, n.sy);
+    const r = 12*Math.max(cam.scale,0.6);
+    const dx = p.x-px, dy = p.y-py;
+    if(Math.sqrt(dx*dx+dy*dy) < r) return n;
+    if(showTitles){
+      const label = n.title || (n.text||'').slice(0,16) || '';
+      if(label){
+        const w = ctx.measureText(label).width;
+        const left = p.x + r*0.5, right = left + w + 10;
+        const top = p.y - 9, bottom = p.y + 9;
+        if(px>=left && px<=right && py>=top && py<=bottom) return n;
+      }
+    }
+  }
+  return null;
+}
+function selfHit(px, py){
+  const p = worldToScreen(0,0);
+  const dx=p.x-px, dy=p.y-py;
+  return Math.sqrt(dx*dx+dy*dy) < 14*cam.scale;
+}
+
+const hoverLabel = $('hoverLabel');
+const todayPanel = $('todayPanel');
+document.addEventListener('click', (e) => {
+  if(todayPanel.classList.contains('open') && !todayPanel.contains(e.target) && e.target !== cv){
+    todayPanel.classList.remove('open');
+  }
+});
+let dragMoved = 0;
+cv.addEventListener('mousedown', () => { dragMoved = 0; });
+window.addEventListener('mousemove', (e) => {
+  if(dragging) dragMoved += Math.abs(e.movementX) + Math.abs(e.movementY);
+});
+
+cv.addEventListener('click', (e) => {
+  if(dragMoved > 6) return; // ドラッグ操作の終わりのクリックは無視する
+  if(selfHit(e.clientX, e.clientY)){ openTodayPanel(); return; }
+  todayPanel.classList.remove('open');
+  const n = noteAt(e.clientX, e.clientY);
+  if(!n){ selectedId=null; hoverLabel.style.display='none'; return; }
+  selectedId = n.id;
+  openCard(n.id);
+});
+
+function openTodayPanel(){
+  const unclassified = notes.filter(n=>!n.categoryId).length;
+  const today = new Date().toISOString().slice(0,10).replace(/-/g,'.');
+  todayPanel.innerHTML = `
+    <div class="flabel">今日</div>
+    <div style="font-size:13px;margin-bottom:10px">${today}</div>
+    <div style="font-size:12px;color:var(--dim);margin-bottom:14px">未分類のメモ：${unclassified}件</div>
+    <a href="https://claude.ai" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:11px;color:var(--dim);border:1px solid var(--border);border-radius:6px;padding:6px 12px;text-decoration:none">Claudeを開く ↗</a>
+  `;
+  todayPanel.classList.add('open');
+}
+
+/* ---------- カード ---------- */
+const TEMPLATES = {
+  idea:  {fields:[{key:'title',label:'タイトル',kind:'input'},{key:'purpose',label:'目的',kind:'textarea',rows:2},{key:'concept',label:'構想',kind:'textarea',rows:3},{key:'keywords',label:'キーワード',kind:'input'}]},
+  loose: {fields:[{key:'title',label:'テーマ',kind:'input'},{key:'purpose',label:'なぜ惹かれるか',kind:'textarea',rows:2},{key:'concept',label:'近いもの・連想',kind:'textarea',rows:3}]},
+  list:  {fields:[{key:'title',label:'リスト名',kind:'input'},{key:'concept',label:'項目（1行ずつ）',kind:'textarea',rows:6}]},
+  poem:  {fields:[{key:'title',label:'タイトル',kind:'input'},{key:'purpose',label:'モチーフ',kind:'textarea',rows:2},{key:'concept',label:'断片',kind:'textarea',rows:5},{key:'keywords',label:'キーワード',kind:'input'}]},
+};
+const cardOverlay = $('cardOverlay'), cardMemo = $('cardMemo'), cardFields = $('cardFields');
+let editingId = null;
+
+function renderCardFields(templateKey, values){
+  cardFields.innerHTML = '';
+  const tpl = TEMPLATES[templateKey] || TEMPLATES.idea;
+  for(const f of tpl.fields){
+    const wrap = document.createElement('div');
+    wrap.className = 'field';
+    wrap.innerHTML = `<div class="flabel">${f.label}</div>`;
+    const el = document.createElement(f.kind==='textarea' ? 'textarea':'input');
+    el.id = 'cf_'+f.key;
+    if(f.kind==='textarea') el.rows = f.rows||2; else el.type='text';
+    let v = values ? values[f.key] : '';
+    if(f.key==='keywords' && Array.isArray(values?.keywords)) v = values.keywords.join(', ');
+    el.value = v || '';
+    wrap.appendChild(el);
+    cardFields.appendChild(wrap);
+  }
+}
+function readCardFields(templateKey){
+  const out = {title:'',purpose:'',concept:'',keywords:[]};
+  const tpl = TEMPLATES[templateKey] || TEMPLATES.idea;
+  for(const f of tpl.fields){
+    const el = $('cf_'+f.key);
+    if(!el) continue;
+    if(f.key==='keywords') out.keywords = el.value.split(',').map(s=>s.trim()).filter(Boolean);
+    else out[f.key] = el.value.trim();
+  }
+  return out;
+}
+
+function openCard(id){
+  const note = notes.find(n=>n.id===id);
+  if(!note) return;
+  editingId = id;
+  cardMemo.value = note.text || '';
+  renderCardFields(note.type, note);
+  cardOverlay.classList.add('open');
+}
+function closeCard(save){
+  if(editingId && save){
+    const note = notes.find(n=>n.id===editingId);
+    if(note){
+      note.text = cardMemo.value.trim();
+      const f = readCardFields(note.type);
+      note.title=f.title; note.purpose=f.purpose; note.concept=f.concept; note.keywords=f.keywords;
+      note.categoryId = autoClassify(note);
+      requestSave();
+    }
+  }
+  editingId = null;
+  selectedId = null;
+  hoverLabel.style.display = 'none';
+  cardOverlay.classList.remove('open');
+}
+$('btnCardClose').addEventListener('click', () => closeCard(true));
+cardOverlay.addEventListener('click', (e) => { if(e.target===cardOverlay) closeCard(true); });
+$('cardDelete').addEventListener('click', () => {
+  if(!editingId) return;
+  if(!confirm('このメモを削除しますか？')) return;
+  notes = notes.filter(n=>n.id!==editingId);
+  requestSave();
+  closeCard(false);
+});
+
+function noteToMarkdown(note){
+  const out = [`# ${note.title || '(無題)'}`, ''];
+  if(note.text) out.push('## メモ', note.text, '');
+  if(note.purpose) out.push('## 目的／モチーフ', note.purpose, '');
+  if(note.concept) out.push('## 構想／断片', note.concept, '');
+  if(note.keywords && note.keywords.length) out.push('## キーワード', note.keywords.join(', '), '');
+  return out.join('\n');
+}
+$('btnCopyMd').addEventListener('click', async () => {
+  const note = notes.find(n=>n.id===editingId);
+  if(!note) return;
+  try{
+    await navigator.clipboard.writeText(noteToMarkdown(note));
+    $('btnCopyMd').textContent = 'コピーしました ✓';
+    setTimeout(()=> $('btnCopyMd').textContent = '📋 コピー', 1500);
+  }catch(e){ alert('コピーに失敗しました。'); }
+});
+$('btnDownloadMd').addEventListener('click', () => {
+  const note = notes.find(n=>n.id===editingId);
+  if(!note) return;
+  const blob = new Blob([noteToMarkdown(note)], {type:'text/markdown'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = (note.title || 'idea') + '.md';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ---------- クラウド読み込み・保存 ---------- */
+let cloudReady = false;
+let saveTimer = null;
+function requestSave(){
+  renderLegend();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    if(!window.OrbitCloud || !cloudReady) return;
+    const ok = await window.OrbitCloud.save({
+      notes: notes.map(n => ({
+        id:n.id, tag:null, q:n.q||'idea', t:n.t, text:n.text, sub:'',
+        type:n.type||null, categoryId:n.categoryId||null,
+        title:n.title||'', purpose:n.purpose||'', concept:n.concept||'',
+        keywords:Array.isArray(n.keywords)?n.keywords:[],
+        hybrid:null, tentative:false, born:null,
+      })),
+      lines: lines.map(l => ({a:l.a, b:l.b, why:l.why||''})),
+      categories: categories.map(c => ({id:c.id, name:c.name})),
+      savedAt: new Date().toISOString(),
+    });
+    $('status').textContent = ok ? '' : '保存に失敗しました';
+  }, 500);
+}
+
+function assignInitialPositions(){
+  for(const n of notes){
+    if(n.sx !== undefined) continue;
+    n.sx = (Math.random()-0.5) * Math.min(W,H) * 0.9;
+    n.sy = (Math.random()-0.5) * Math.min(W,H) * 0.9;
+  }
+}
+
+const btnSignIn = $('btnSignIn'), authWho = $('authWho');
+btnSignIn.addEventListener('click', () => window.OrbitCloud.signIn());
+authWho.addEventListener('click', () => { if(confirm('ログアウトしますか？')) window.OrbitCloud.signOut(); });
+
+window.addEventListener('orbit-auth', async (e) => {
+  const user = e.detail.user;
+  if(user){
+    btnSignIn.style.display = 'none';
+    authWho.style.display = 'inline';
+    authWho.textContent = '✓ ' + (user.displayName || user.email);
+    cloudReady = false;
+    $('status').textContent = '読み込み中…';
+    const data = await window.OrbitCloud.load();
+    if(data){
+      notes = Array.isArray(data.notes) ? data.notes : [];
+      lines = Array.isArray(data.lines) ? data.lines : [];
+      categories = Array.isArray(data.categories) ? data.categories : [];
+    }
+    cacheSimilarities();
+    assignInitialPositions();
+    cloudReady = true;
+    renderLegend();
+    $('status').textContent = '';
+  } else {
+    btnSignIn.style.display = 'inline-block';
+    authWho.style.display = 'none';
+    notes = []; lines = []; categories = [];
+  }
+});
+
+/* ---------- 通知カード（AIによる組み合わせ提案。まだ仮データ） ---------- */
+const proposals = [
+  {combo:'「散歩中に浮かんだコード進行」×「季節の語彙」', result:'季節の言葉で歌えるコード進行辞典'},
+  {combo:'「タグ＝恒星。引力で集まる」×「母音パターン」', result:'母音が引力になる歌詞宇宙'},
+];
+let proposalIdx = 0;
+let lastAct = 0;
+const IDLE_SEC = 20;
+
+function maybeShowNotify(){
+  if(proposalIdx >= proposals.length) return;
+  if(tGlobal - lastAct < IDLE_SEC) return;
+  const p = proposals[proposalIdx];
+  $('notifyCombo').textContent = p.combo;
+  $('notifyResult').textContent = '→ ' + p.result;
+  $('notify').classList.add('show');
+  lastAct = tGlobal + 999999;
+}
+setInterval(maybeShowNotify, 2000);
+
+$('btnNotifySkip').addEventListener('click', () => {
+  $('notify').classList.remove('show');
+  proposalIdx++;
+  lastAct = tGlobal;
+});
+$('btnNotifyAdopt').addEventListener('click', () => {
+  const p = proposals[proposalIdx];
+  const now = Date.now();
+  const note = {
+    id:'sug_'+now.toString(36), q:'idea', t:now, text:p.result,
+    type:'idea', title:p.result, purpose:'', concept:p.combo, keywords:[],
+    categoryId:null,
+  };
+  note.categoryId = autoClassify(note);
+  notes.push(note);
+  requestSave();
+  $('notify').classList.remove('show');
+  proposalIdx++;
+  lastAct = tGlobal;
+});
+
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
