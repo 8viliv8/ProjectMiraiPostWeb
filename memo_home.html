@@ -28,6 +28,9 @@
     --kaji:#7C8A6E;
     --shigoto:#8C7A5C;
   }
+  /* ページ間の行き来を、対応ブラウザ(Chrome/Edge最新版・Safari 18.2以降)でクロスフェードにする。
+     未対応の環境では、これまで通り普通の画面切り替えになるだけで、悪化はしない。 */
+  @view-transition{ navigation: auto; }
   *{box-sizing:border-box}
   button, input, textarea{-webkit-appearance:none;appearance:none;font:inherit}
   body{
@@ -54,6 +57,8 @@
     border-radius:6px;padding:6px 12px;transition:.2s;
   }
   #universeLink:hover{color:var(--ink);border-color:var(--accent);background:var(--surface)}
+  @keyframes bubbleBlink{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
+  #noteCircle.blink{ animation: bubbleBlink .22s ease-in-out; }
 
   /* ---------- 入力欄：ウィンドウ風カード（白基調） ---------- */
   #inputCard{
@@ -1254,6 +1259,15 @@ listToggleEl.addEventListener('click', () => {
 });
 
 render();
+
+/* ---------- H゜meへ移動する前、泡を一瞬点滅させる ---------- */
+document.getElementById('universeLink').addEventListener('click', function(e){
+  e.preventDefault();
+  const href = this.getAttribute('href');
+  const bubble = document.getElementById('noteCircle');
+  if(bubble) bubble.classList.add('blink');
+  setTimeout(() => { window.location.href = href; }, 220);
+});
 
 /* ---------- 入場演出：下から上へ、シャボンが飛んでいく（読み込み時に一度だけ） ---------- */
 (function bubbleIntro(){

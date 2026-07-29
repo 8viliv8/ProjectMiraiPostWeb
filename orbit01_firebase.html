@@ -24,6 +24,9 @@
     --mono:'JetBrains Mono',monospace;
     --ui:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
   }
+  /* ページ間の行き来を、対応ブラウザ(Chrome/Edge最新版・Safari 18.2以降)でクロスフェードにする。
+     未対応の環境では、これまで通り普通の画面切り替えになるだけで、悪化はしない。 */
+  @view-transition{ navigation: auto; }
   *{box-sizing:border-box}
   button, input, textarea, label{-webkit-appearance:none;appearance:none;font:inherit}
   html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--ui)}
@@ -33,6 +36,8 @@
   .hud{position:fixed;z-index:10}
   #title{top:18px;left:20px;font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.05em}
   #title a{color:var(--dim);text-decoration:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;margin-left:10px;font-size:11px}
+  @keyframes bubbleBlink{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
+  #memoLink .bubble-icon.blink{ display:inline-block; animation: bubbleBlink .22s ease-in-out; }
   .bubble-icon{vertical-align:-2px;color:var(--dim)}
   .fish-icon{vertical-align:-1px;color:var(--dim);margin-left:6px}
   .tankFrame{
@@ -1002,6 +1007,15 @@ $('btnNotifyAdopt').addEventListener('click', () => {
 });
 
 requestAnimationFrame(draw);
+
+/* ---------- memoへ戻る前、泡を一瞬点滅させる ---------- */
+document.getElementById('memoLink').addEventListener('click', function(e){
+  e.preventDefault();
+  const href = this.getAttribute('href');
+  const bubble = this.querySelector('.bubble-icon');
+  if(bubble) bubble.classList.add('blink');
+  setTimeout(() => { window.location.href = href; }, 220);
+});
 </script>
 </body>
 </html>
