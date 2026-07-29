@@ -19,7 +19,7 @@
     --border:#EAE7E1;
     --ink:#2C2E31;
     --dim:#8E8B82;
-    --accent:#7A8B83;
+    --accent:#6E9BB8;
     --mono:'JetBrains Mono',monospace;
     --ui:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
 
@@ -90,13 +90,14 @@
   #inputCard .dot.active{box-shadow:0 0 0 3px rgba(0,0,0,.08)}
   #clearTemplate{
     display:none;font-family:var(--mono);font-size:10px;color:var(--dim);
-    cursor:pointer;margin-left:8px;
+    cursor:pointer;margin-left:8px;white-space:nowrap;flex:none;
   }
   #saveTemplate{
     display:inline-flex;align-items:center;justify-content:center;
     font-family:var(--mono);font-size:10px;color:var(--ink);
     background:#fff;border:1px solid var(--accent);border-radius:999px;
     padding:4px 12px;cursor:pointer;margin-left:8px;transition:transform .15s,background .15s;
+    white-space:nowrap;flex:none;
   }
   #saveTemplate:hover{transform:scale(1.05);background:var(--surface)}
   #inputCard.expanded #clearTemplate{display:inline}
@@ -260,6 +261,13 @@
   #poolCloseBtn{font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;padding:6px 4px}
   #poolDeleteBtn{font-family:var(--mono);font-size:11px;color:#B15C4F;cursor:pointer;padding:6px 4px}
   #poolAutoBtn{font-family:var(--mono);font-size:11px;color:var(--accent);cursor:pointer;padding:6px 4px}
+  #poolAutoBtnInline{
+    position:absolute;right:10px;bottom:8px;
+    font-family:var(--mono);font-size:9px;color:var(--accent);
+    border:1px solid var(--border);border-radius:999px;
+    padding:3px 9px;cursor:pointer;background:#fff;
+  }
+  #poolAutoBtnInline:hover{border-color:var(--accent)}
   #poolNoteList{padding:8px 16px 20px}
   .poolItem{padding:12px 0;border-bottom:1px solid var(--border)}
   .poolItem .piTop{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
@@ -394,10 +402,10 @@
             <path d="M19.5 5.5c-1 1-1.4 2.1-1.1 3.3" stroke="#C7C3B8" stroke-width="0.95" stroke-linecap="round" opacity="0.7" fill="none"/>
           </svg>
         </span>
-        <span class="qtag" id="poolTag" style="padding:3px 10px;font-size:10px;margin-left:8px"><i></i><span id="poolTagText">未分類</span></span>
+        <span class="qtag" id="poolTag" style="padding:3px 10px;font-size:10px;margin-left:8px"><i style="background:#C7C3B8"></i><span id="poolTagText">未分類</span></span>
       </div>
       <div class="barRight">
-        <span class="dot r" id="dotLoose" title="未定形テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3v10M3.5 5.5l9 5M12.5 5.5l-9 5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot y" id="dotList" title="リスト用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M4 5h8M4 8h8M4 11h8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot b" id="dotPoem" title="詩・歌詞用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M6 12V4l6-1v7" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5.3" cy="12" r="1.6" fill="#fff"/><circle cx="11.3" cy="10" r="1.6" fill="#fff"/></svg></span><span class="dot g" id="dotIdea" title="アイデア用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3a4 4 0 0 0-2 7.5V12h4v-1.5A4 4 0 0 0 8 3z" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.5 13.5h3" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg></span><span id="clearTemplate">テンプレート解除</span><span id="saveTemplate">保存</span>
+        <span class="dot r" id="dotLoose" title="未定形テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3v10M3.5 5.5l9 5M12.5 5.5l-9 5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot y" id="dotList" title="リスト用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M4 5h8M4 8h8M4 11h8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot b" id="dotPoem" title="詩・歌詞用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M6 12V4l6-1v7" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5.3" cy="12" r="1.6" fill="#fff"/><circle cx="11.3" cy="10" r="1.6" fill="#fff"/></svg></span><span class="dot g" id="dotIdea" title="アイデア用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3a4 4 0 0 0-2 7.5V12h4v-1.5A4 4 0 0 0 8 3z" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.5 13.5h3" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg></span><span id="clearTemplate">テンプレ解除</span><span id="saveTemplate">保存</span>
       </div>
     </div>
     <div class="body">
@@ -415,9 +423,10 @@
   </div>
 
   <div id="classifySection">
-    <div id="pool" class="dropzone" data-cat="">
+    <div id="pool" class="dropzone" data-cat="" style="position:relative">
       <div class="czlabel">未分類</div>
       <div class="dots"></div>
+      <span id="poolAutoBtnInline">自動振り分け</span>
     </div>
     <div id="poolsRow">
       <div id="categories"></div>
@@ -775,13 +784,20 @@ function poolLabelFor(categoryId){
 function poolLabelForNote(n){
   return n.categoryId ? poolLabelFor(n.categoryId) : '未分類';
 }
+function updatePoolTagIcon(categoryId){
+  const i = poolTagEl.querySelector('i');
+  if(i) i.style.background = categoryId ? colorForCategory(categoryId) : '#C7C3B8';
+}
 
 function resetPoolPicker(existingNote){
   pendingManualChoice = { touched:false, categoryId:null };
   if(existingNote && existingNote.categoryManual){
-    poolTagTextEl.textContent = poolLabelFor(existingNote.categoryId === undefined ? null : existingNote.categoryId);
+    const cid = existingNote.categoryId === undefined ? null : existingNote.categoryId;
+    poolTagTextEl.textContent = poolLabelFor(cid);
+    updatePoolTagIcon(cid);
   } else {
     poolTagTextEl.textContent = '未分類';
+    updatePoolTagIcon(null);
   }
 }
 
@@ -802,9 +818,11 @@ poolTagEl.addEventListener('click', (e) => {
       if(choice === 'NONE'){
         pendingManualChoice = { touched:true, categoryId: null };
         poolTagTextEl.textContent = '未分類';
+        updatePoolTagIcon(null);
       } else {
         pendingManualChoice = { touched:true, categoryId: choice };
         poolTagTextEl.textContent = poolLabelFor(choice);
+        updatePoolTagIcon(choice);
       }
       qmenu.classList.remove('open');
       memoInput.focus(); // 選択後は入力欄にフォーカスを戻し、離れれば普通に保存される流れに合流させる
@@ -1243,15 +1261,20 @@ poolNameInputEl.addEventListener('change', () => {
   requestSave();
   renderClassify();
 });
-$('poolAutoBtn').addEventListener('click', () => {
+function runAutoClassifyOnUnclassified(){
   const targets = notes.filter(n => !n.categoryId && !n.categoryManual);
   targets.forEach(n => {
     const result = autoClassify(n);
     if(result) n.categoryId = result;
   });
   requestSave();
-  renderPoolNoteList(null);
+  if(poolOverlayEl.classList.contains('open') && openPoolId === null) renderPoolNoteList(null);
   renderClassify();
+}
+$('poolAutoBtn').addEventListener('click', runAutoClassifyOnUnclassified);
+$('poolAutoBtnInline').addEventListener('click', (e) => {
+  e.stopPropagation(); // 箱全体のクリック（詳細を開く）と競合しないように
+  runAutoClassifyOnUnclassified();
 });
 
 $('poolCloseBtn').addEventListener('click', () => {
