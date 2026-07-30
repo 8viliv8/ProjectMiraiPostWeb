@@ -337,6 +337,11 @@
   .poolItem .piCircle{width:8px;height:8px;border-radius:50%;flex:none}
   .poolItem .piTitle{font-size:13px;color:var(--ink)}
   .poolItem .piDate{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap}
+  .piDeleteBtn{
+    font-family:var(--mono);font-size:14px;color:var(--dim);cursor:pointer;
+    padding:0 2px;line-height:1;flex:none;
+  }
+  .piDeleteBtn:hover{color:#B15C4F}
   #poolEmpty{color:var(--dim);font-size:12px;text-align:center;padding:30px 0}
 
   /* ---------- エクスポート（チェック選択・1枚にまとめる・md化・コピー） ---------- */
@@ -1754,6 +1759,7 @@ function renderPoolNoteList(catId){
           <div class="piTop">
             <div class="piTitleRow"><span class="piTitle">${escapeHtml(title)}</span></div>
             <span class="piDate">${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span>
+            <span class="piDeleteBtn" data-id="${n.id}" title="削除">×</span>
           </div>
         </div>
       </div>
@@ -1762,6 +1768,17 @@ function renderPoolNoteList(catId){
 
   poolNoteListEl.querySelectorAll('.piCheck').forEach(cb => {
     cb.addEventListener('click', () => cb.classList.toggle('checked'));
+  });
+  poolNoteListEl.querySelectorAll('.piDeleteBtn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      if(!await customConfirm('このメモを削除しますか？（ゴミ箱に移動します）')) return;
+      softDeleteNote(id);
+      requestSave();
+      renderPoolNoteList(catId);
+      renderClassify();
+    });
   });
   poolNoteListEl.querySelectorAll('.poolItem .piTitle').forEach(el => {
     el.style.cursor = 'pointer';
