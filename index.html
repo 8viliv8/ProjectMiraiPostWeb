@@ -1449,7 +1449,7 @@ $('poolMdBtn').addEventListener('click', () => {
 $('poolCopyBtn').addEventListener('click', async () => {
   const selected = getSelectedPoolNotes();
   if(selected.length === 0) return;
-  const md = selected.map(noteToMarkdownSection).join('\n---\n\n');
+  const md = '--- send from "H°me" app ---\n\n' + selected.map(noteToMarkdownSection).join('\n---\n\n');
   try{
     await navigator.clipboard.writeText(md);
     const btn = $('poolCopyBtn');
