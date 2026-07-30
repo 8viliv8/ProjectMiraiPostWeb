@@ -324,10 +324,6 @@
   .poolItem .piCircle{width:8px;height:8px;border-radius:50%;flex:none}
   .poolItem .piTitle{font-size:13px;color:var(--ink)}
   .poolItem .piDate{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap}
-  .poolItem select{
-    margin-top:8px;width:100%;font-family:var(--ui);font-size:12px;color:var(--dim);
-    border:1px solid var(--border);border-radius:6px;padding:6px 8px;background:#fff;
-  }
   #poolEmpty{color:var(--dim);font-size:12px;text-align:center;padding:30px 0}
 
   /* ---------- エクスポート（チェック選択・1枚にまとめる・md化・コピー） ---------- */
@@ -377,27 +373,42 @@
 
   #readViewOverlay{
     position:fixed;inset:0;background:rgba(251,250,248,.85);
-    display:none;align-items:center;justify-content:center;z-index:56;
+    display:none;justify-content:center;z-index:56;
+    padding-top:8vh;
     backdrop-filter:blur(2px);
   }
   #readViewOverlay.open{display:flex}
   #readViewPanel{
-    width:min(520px,92vw);max-height:82vh;overflow:auto;
+    width:min(520px,92vw);max-height:80vh;overflow:auto;height:fit-content;
     background:var(--surface);border:1px solid var(--border);border-radius:10px;
     box-shadow:0 30px 70px -20px rgba(0,0,0,.25);
-    cursor:pointer;
   }
   #readViewEditBtn{font-family:var(--mono);font-size:11px;color:var(--accent);cursor:pointer}
+  #readViewDeleteBtn{font-family:var(--mono);font-size:11px;color:#B15C4F;cursor:pointer;display:none}
   #readViewCloseBtn{font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer}
-  #readViewBody{padding:20px 22px;font-size:13px;line-height:1.9;color:var(--ink);cursor:default}
+  #readViewBody{padding:20px 22px;font-size:13px;line-height:1.9;color:var(--ink);cursor:pointer}
+  #readViewBody.editing{cursor:default}
   #readViewBody h2{font-size:15px;font-weight:500;margin:0 0 4px 0}
   #readViewBody .cbDate{font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:14px}
   #readViewBody h3{font-size:11px;color:var(--dim);font-weight:500;letter-spacing:.05em;margin:14px 0 3px 0}
   #readViewBody p{margin:0 0 4px 0;white-space:pre-wrap}
+  #readViewBody .rvField{margin-bottom:14px}
+  #readViewBody .rvField textarea, #readViewBody .rvField input{
+    width:100%;border:1px solid var(--border);border-radius:6px;background:#fff;
+    font-family:var(--ui);font-size:13px;color:var(--ink);line-height:1.7;padding:8px 10px;resize:vertical;
+  }
+  #readViewBody .rvMemoInput{font-family:var(--mono);min-height:60px}
 
   #empty{color:var(--dim);font-size:12px;text-align:center;padding:60px 0}
 
-  .card{cursor:pointer}
+  .cardWrap{position:relative;overflow:hidden}
+  .cardDeleteReveal{
+    position:absolute;inset:0;left:auto;width:76px;
+    background:#B15C4F;color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:12px;cursor:pointer;
+  }
+  .card{cursor:pointer;position:relative;background:var(--surface)}
   .card:hover{background:#F5F3EE}
 
   /* ---------- 保存時：ひとつの〇に収束するエフェクト ---------- */
@@ -482,6 +493,23 @@
   #listToggle:hover{color:var(--ink)}
   #listSection{display:none;margin-top:16px}
   #listSection.open{display:block}
+
+  #trashToggle{
+    margin-top:20px;padding-top:16px;border-top:1px dashed var(--border);
+    font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.05em;
+    cursor:pointer;user-select:none;opacity:.6;
+  }
+  #trashToggle:hover{color:var(--ink);opacity:1}
+  #trashSection{display:none;margin-top:12px}
+  #trashSection.open{display:block}
+  .trashItem{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:8px 0;border-bottom:1px solid var(--border);
+    font-size:12px;color:var(--dim);
+  }
+  .trashItem .tiActions{display:flex;gap:10px;font-family:var(--mono);font-size:10px;flex:none}
+  .trashItem .tiRestore{color:var(--accent);cursor:pointer}
+  .trashItem .tiPurge{color:#B15C4F;cursor:pointer}
 </style>
 </head>
 <body>
@@ -521,7 +549,17 @@
       </svg>
     </span>
     </div>
-    <a id="universeLink" href="orbit01_firebase.html"><svg width="12" height="10" viewBox="0 0 24 20" fill="none" style="vertical-align:-1px;margin-right:4px"><path d="M2 10h18M14 3l7 7-7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>H°me</a>
+    <a id="universeLink" href="orbit01_firebase.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-3px;margin-right:5px">
+      <circle cx="12" cy="2"  r="1.4" fill="currentColor"/>
+      <circle cx="7"  cy="7"  r="1.4" fill="currentColor"/>
+      <circle cx="17" cy="7"  r="1.4" fill="currentColor"/>
+      <circle cx="2"  cy="12" r="1.4" fill="currentColor"/>
+      <circle cx="12" cy="12" r="1.4" fill="none" stroke="currentColor" stroke-width="0.9"/>
+      <circle cx="22" cy="12" r="1.4" fill="currentColor"/>
+      <circle cx="7"  cy="17" r="1.4" fill="currentColor"/>
+      <circle cx="17" cy="17" r="1.4" fill="currentColor"/>
+      <circle cx="12" cy="22" r="1.4" fill="currentColor"/>
+    </svg>H°me</a>
   </header>
 
   <div id="authRow">
@@ -580,6 +618,12 @@
     <div id="empty" style="display:none">まだメモがありません。上の欄から書き始めてください。</div>
   </div>
 
+  <div id="trashToggle">▸ ゴミ箱</div>
+  <div id="trashSection">
+    <div id="trashList"></div>
+    <div id="trashEmpty" style="display:none">ゴミ箱は空です</div>
+  </div>
+
 </div>
 
 <div id="searchBarWrap">
@@ -624,9 +668,10 @@
 <div id="readViewOverlay">
   <div id="readViewPanel">
     <div class="poolHeader">
-      <span style="font-size:13px;color:var(--ink);font-weight:500">見る</span>
+      <span class="qtag" id="rvPoolTag" style="padding:3px 10px;font-size:10px"><i></i><span id="rvPoolTagText">未分類</span></span>
       <div style="display:flex;gap:14px">
         <span id="readViewEditBtn">編集</span>
+        <span id="readViewDeleteBtn">削除</span>
         <span id="readViewCloseBtn">閉じる</span>
       </div>
     </div>
@@ -686,6 +731,10 @@ try{
 
 let currentUser = null;
 let notes = [];   // orbitData.notes と同じ形（宇宙モードとフィールド互換）
+function softDeleteNote(id){
+  const note = notes.find(n => n.id === id);
+  if(note){ note.deleted = true; note.deletedAt = new Date().toISOString(); }
+}
 let lines = [];    // orbitData.lines（引き継ぐだけ、ここでは編集しない）
 let categories = []; // [{id, name}] 分類の箱。noteは categoryId を持つ（null=未分類プール）
 
@@ -788,6 +837,8 @@ function requestSave(){
             type:n.type||null, categoryId:n.categoryId||null,
             title:n.title||'', purpose:n.purpose||'', concept:n.concept||'',
             keywords:Array.isArray(n.keywords)?n.keywords:[],
+            categoryManual:!!n.categoryManual,
+            deleted:!!n.deleted, deletedAt:n.deletedAt||null,
             hybrid:n.hybrid||null, tentative:!!n.tentative, born:null,
           })),
           lines: lines.map(l => ({a:l.a, b:l.b, why:l.why||''})),
@@ -836,6 +887,7 @@ function matchesSearch(n){
 function render(){
   listEl.innerHTML = '';
   const sorted = [...notes]
+    .filter(n => !n.deleted)
     .filter(n => n.id !== editingNoteId)
     .filter(matchesSearch)
     .sort((a,b) => (b.t||0) - (a.t||0));
@@ -844,12 +896,15 @@ function render(){
   for(const n of sorted){
     const poolColor = n.categoryId ? colorForCategory(n.categoryId) : '#C7C3B8';
     const { title, sub } = preview(n);
+    const wrap = document.createElement('div');
+    wrap.className = 'cardWrap';
+    wrap.innerHTML = `<div class="cardDeleteReveal" data-id="${n.id}">削除</div>`;
     const card = document.createElement('div');
     card.className = 'card';
     card.dataset.id = n.id;
     card.innerHTML = `
       <div class="row1">
-        <div class="left"><span class="titleCircle" style="background:${poolColor}"></span><div class="title">${escapeHtml(title)}</div></div>
+        <div class="left"><div class="title">${escapeHtml(title)}</div></div>
         <div class="rowActions">
           <div class="qtagView"><i style="background:${poolColor}"></i>${escapeHtml(poolLabelForNote(n))}</div>
           <span class="cardDeleteBtn" data-id="${n.id}" title="削除">×</span>
@@ -860,9 +915,12 @@ function render(){
     `;
     card.addEventListener('click', (e) => {
       if(e.target.closest('.cardDeleteBtn')) return; // 削除ボタンは別ハンドラ
+      if(wrap.classList.contains('revealed')){ wrap.classList.remove('revealed'); return; } // スワイプで開いている時は閉じるだけ
       openReadView(n.id);
     });
-    listEl.appendChild(card);
+    wireCardSwipe(card, wrap);
+    wrap.appendChild(card);
+    listEl.appendChild(wrap);
   }
 
   listEl.querySelectorAll('.cardDeleteBtn').forEach(btn => {
@@ -870,13 +928,66 @@ function render(){
       e.stopPropagation();
       const id = btn.dataset.id;
       if(!await customConfirm('このメモを削除しますか？')) return;
-      notes = notes.filter(n => n.id !== id);
+      softDeleteNote(id);
+      requestSave();
+      render();
+    });
+  });
+  listEl.querySelectorAll('.cardDeleteReveal').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      if(!await customConfirm('このメモを削除しますか？')) return;
+      softDeleteNote(id);
       requestSave();
       render();
     });
   });
 
   renderClassify();
+}
+
+function wireCardSwipe(card, wrap){
+  let startX = null, startY = null, dx = 0, dragging = false, decided = false, isHorizontal = false;
+  const REVEAL = 76;
+
+  card.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+    dx = 0; dragging = true; decided = false; isHorizontal = false;
+    card.style.transition = 'none';
+  }, { passive:true });
+
+  card.addEventListener('touchmove', (e) => {
+    if(!dragging) return;
+    const x = e.touches[0].clientX, y = e.touches[0].clientY;
+    const rawDx = x - startX, rawDy = y - startY;
+    if(!decided){
+      if(Math.abs(rawDx) > 6 || Math.abs(rawDy) > 6){
+        decided = true;
+        isHorizontal = Math.abs(rawDx) > Math.abs(rawDy);
+      }
+    }
+    if(!isHorizontal) return;
+    e.preventDefault();
+    const base = wrap.classList.contains('revealed') ? -REVEAL : 0;
+    dx = Math.max(-REVEAL, Math.min(0, base + rawDx));
+    card.style.transform = `translateX(${dx}px)`;
+  }, { passive:false });
+
+  card.addEventListener('touchend', () => {
+    if(!dragging) return;
+    dragging = false;
+    card.style.transition = 'transform .18s ease-out';
+    if(isHorizontal){
+      if(dx < -REVEAL*0.5){
+        wrap.classList.add('revealed');
+        card.style.transform = `translateX(-${REVEAL}px)`;
+      } else {
+        wrap.classList.remove('revealed');
+        card.style.transform = 'translateX(0)';
+      }
+    }
+  });
 }
 
 function escapeHtml(s){
@@ -1068,7 +1179,7 @@ function colorForCategory(categoryId){
   return idx>=0 ? palette[idx % palette.length] : '#C7C3B8';
 }
 function sortedCategoriesForColor(){
-  const countOf = (c) => notes.filter(n=>n.categoryId===c.id).length;
+  const countOf = (c) => notes.filter(n=>!n.deleted && n.categoryId===c.id).length;
   return [...categories].sort((a,b)=>countOf(b)-countOf(a));
 }
 
@@ -1109,7 +1220,7 @@ function autoClassify(note){
   if(!noteTxt.trim()) return null;
   let best = null, bestScore = 0;
   for(const cat of categories){
-    const members = notes.filter(n => n.categoryId === cat.id && n.id !== note.id);
+    const members = notes.filter(n => !n.deleted && n.categoryId === cat.id && n.id !== note.id);
     for(const m of members){
       const score = diceSimilarity(noteTxt, noteFullText(m));
       if(score > bestScore){ bestScore = score; best = cat.id; }
@@ -1130,7 +1241,7 @@ function addMemo(){
     if(note){
       if(!text && !f.title){
         // 空にして離れた場合は削除する（Keepと同じ挙動）
-        notes = notes.filter(n => n.id !== editingNoteId);
+        softDeleteNote(editingNoteId);
       } else {
         note.text = text;
         note.type = activeTemplate;
@@ -1229,7 +1340,7 @@ memoInput.addEventListener('keydown', (e) => {
     if(!beforeCursor.includes('\n') && beforeCursor.trim().length > 0){
       e.preventDefault();
       const pos = memoInput.selectionStart;
-      const insert = '\n----\n';
+      const insert = '\n' + '─'.repeat(24) + '\n';
       memoInput.value = memoInput.value.slice(0, pos) + insert + memoInput.value.slice(pos);
       const newPos = pos + insert.length;
       memoInput.setSelectionRange(newPos, newPos);
@@ -1312,14 +1423,20 @@ $('dotPoem').addEventListener('click', () => toggleTemplate('poem'));
 let editingNoteId = null;
 const cardDeleteEl = $('cardDelete');
 
-/* ---------- 見る専用ウィンドウ（ワンクリックで編集へ） ---------- */
+/* ---------- 見る・編集ウィンドウ（同じ画面の中で編集まで完結する） ---------- */
 const readViewOverlayEl = $('readViewOverlay'), readViewBodyEl = $('readViewBody');
+const rvPoolTagEl = $('rvPoolTag'), rvPoolTagTextEl = $('rvPoolTagText');
 let readViewNoteId = null;
+let readViewEditing = false;
 
-function openReadView(id){
-  const note = notes.find(n => n.id === id);
-  if(!note) return;
-  readViewNoteId = id;
+function updateRvPoolTag(note){
+  const color = note.categoryId ? colorForCategory(note.categoryId) : '#C7C3B8';
+  rvPoolTagEl.querySelector('i').style.background = color;
+  rvPoolTagTextEl.textContent = poolLabelForNote(note);
+}
+
+function renderReadOnly(note){
+  readViewBodyEl.classList.remove('editing');
   const hasRealTitle = !!(note.title && note.title.trim());
   const { title } = preview(note);
   const heading = hasRealTitle ? title : 'メモ';
@@ -1336,23 +1453,126 @@ function openReadView(id){
   } else if(note.text){
     body = `<p>${escapeHtml(note.text)}</p>`;
   }
-  readViewBodyEl.innerHTML = `<h2>${escapeHtml(heading)}</h2><div class="cbDate">${dateStr} ・ ${escapeHtml(poolLabelForNote(note))}</div>${body}`;
+  readViewBodyEl.innerHTML = `<h2>${escapeHtml(heading)}</h2><div class="cbDate">${dateStr}</div>${body}`;
+}
+
+function renderEditMode(note){
+  readViewBodyEl.classList.add('editing');
+  let html = `<div class="rvField"><div class="flabel">メモ</div><textarea class="rvMemoInput" id="rvMemo" rows="3">${escapeHtml(note.text||'')}</textarea></div>`;
+  const tpl = TEMPLATES[note.type];
+  if(tpl && tpl.fields.length){
+    for(const f of tpl.fields){
+      const val = f.key==='keywords' ? (note.keywords||[]).join(', ') : (note[f.key]||'');
+      html += `<div class="rvField"><div class="flabel">${escapeHtml(f.label)}</div>`;
+      html += f.kind==='textarea'
+        ? `<textarea id="rvf_${f.key}" rows="${f.rows||2}">${escapeHtml(val)}</textarea>`
+        : `<input type="text" id="rvf_${f.key}" value="${escapeHtml(val)}">`;
+      html += `</div>`;
+    }
+  }
+  readViewBodyEl.innerHTML = html;
+}
+
+function openReadView(id){
+  const note = notes.find(n => n.id === id);
+  if(!note) return;
+  readViewNoteId = id;
+  readViewEditing = false;
+  updateRvPoolTag(note);
+  $('readViewDeleteBtn').style.display = 'none';
+  renderReadOnly(note);
   readViewOverlayEl.classList.add('open');
 }
-readViewBodyEl.addEventListener('click', () => {
-  if(readViewNoteId) goToEditFromReadView();
-});
-function goToEditFromReadView(){
-  const id = readViewNoteId;
+
+function enterEditMode(){
+  const note = notes.find(n => n.id === readViewNoteId);
+  if(!note) return;
+  readViewEditing = true;
+  $('readViewDeleteBtn').style.display = 'inline';
+  renderEditMode(note);
+}
+
+function saveReadViewEdits(){
+  if(!readViewNoteId || !readViewEditing) return;
+  const note = notes.find(n => n.id === readViewNoteId);
+  if(!note) return;
+  const memoEl = $('rvMemo');
+  if(memoEl) note.text = memoEl.value.trim();
+  const tpl = TEMPLATES[note.type];
+  if(tpl && tpl.fields.length){
+    for(const f of tpl.fields){
+      const el = document.getElementById('rvf_'+f.key);
+      if(!el) continue;
+      if(f.key === 'keywords') note.keywords = el.value.split(',').map(s=>s.trim()).filter(Boolean);
+      else note[f.key] = el.value.trim();
+    }
+  }
+  requestSave();
+  render();
+}
+
+function closeReadView(){
+  if(readViewEditing) saveReadViewEdits();
   readViewOverlayEl.classList.remove('open');
   readViewNoteId = null;
-  openCardForEdit(id);
+  readViewEditing = false;
 }
-$('readViewEditBtn').addEventListener('click', (e) => { e.stopPropagation(); goToEditFromReadView(); });
+
+readViewBodyEl.addEventListener('click', () => {
+  if(!readViewEditing && readViewNoteId) enterEditMode();
+});
+$('readViewEditBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if(!readViewEditing) enterEditMode();
+});
 $('readViewCloseBtn').addEventListener('click', (e) => {
   e.stopPropagation();
+  closeReadView();
+});
+$('readViewDeleteBtn').addEventListener('click', async (e) => {
+  e.stopPropagation();
+  if(!readViewNoteId) return;
+  if(!await customConfirm('このメモを削除しますか？')) return;
+  softDeleteNote(readViewNoteId);
+  requestSave();
   readViewOverlayEl.classList.remove('open');
-  readViewNoteId = null;
+  readViewNoteId = null; readViewEditing = false;
+  render();
+});
+readViewOverlayEl.addEventListener('click', (e) => {
+  if(e.target === readViewOverlayEl) closeReadView(); // 画面外をタップすると、編集中なら保存してから閉じる
+});
+rvPoolTagEl.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if(!readViewNoteId) return;
+  const note = notes.find(n => n.id === readViewNoteId);
+  if(!note) return;
+  qmenu.innerHTML = `
+    <div data-choice="NONE"><i class="circleIcon"></i>未分類</div>
+    ${categories.map(c => `<div data-choice="${c.id}"><i style="background:${colorForCategory(c.id)}"></i>${escapeHtml(c.name)}</div>`).join('')}
+  `;
+  const rect = rvPoolTagEl.getBoundingClientRect();
+  qmenu.style.top = (window.scrollY + rect.bottom + 4) + 'px';
+  qmenu.style.left = (window.scrollX + rect.left) + 'px';
+  qmenu.classList.add('open');
+  qmenu.querySelectorAll('div').forEach(item => {
+    item.onclick = () => {
+      const choice = item.dataset.choice;
+      note.categoryId = choice === 'NONE' ? null : choice;
+      note.categoryManual = true;
+      updateRvPoolTag(note);
+      requestSave();
+      renderClassify();
+      qmenu.classList.remove('open');
+    };
+  });
+  const closeOnOutside = (ev) => {
+    if(!qmenu.contains(ev.target)){
+      qmenu.classList.remove('open');
+      document.removeEventListener('click', closeOnOutside);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', closeOnOutside), 0);
 });
 
 function openCardForEdit(id){
@@ -1399,7 +1619,7 @@ function exitEditMode(){
 cardDeleteEl.addEventListener('click', async () => {
   if(!editingNoteId) return;
   if(!await customConfirm('このメモを削除しますか？')) return;
-  notes = notes.filter(n => n.id !== editingNoteId);
+  softDeleteNote(editingNoteId);
   requestSave();
   exitEditMode();
   render();
@@ -1424,7 +1644,7 @@ function makeZDot(note){
     setTimeout(() => dot.classList.add('dragging'), 0);
   });
   dot.addEventListener('dragend', () => dot.classList.remove('dragging'));
-  dot.addEventListener('click', () => openCardForEdit(note.id));
+  dot.addEventListener('click', () => openReadView(note.id));
   return dot;
 }
 
@@ -1447,11 +1667,11 @@ function wireDropzone(el, categoryId){
 function renderClassify(){
   const poolDots = poolEl.querySelector('.dots');
   poolDots.innerHTML = '';
-  notes.filter(n => !n.categoryId).forEach(n => poolDots.appendChild(makeZDot(n)));
+  notes.filter(n => !n.deleted && !n.categoryId).forEach(n => poolDots.appendChild(makeZDot(n)));
   wireDropzone(poolEl, null);
 
   categoriesEl.innerHTML = '';
-  const countOf = (cat) => notes.filter(n => n.categoryId === cat.id).length;
+  const countOf = (cat) => notes.filter(n => !n.deleted && n.categoryId === cat.id).length;
   const sortedCats = [...categories].sort((a,b) => countOf(b) - countOf(a));
   sortedCats.forEach(cat => {
     const box = document.createElement('div');
@@ -1469,7 +1689,7 @@ function renderClassify(){
       openPoolDetail(cat.id);
     });
     const dotsWrap = box.querySelector('.dots');
-    notes.filter(n => n.categoryId === cat.id).forEach(n => dotsWrap.appendChild(makeZDot(n)));
+    notes.filter(n => !n.deleted && n.categoryId === cat.id).forEach(n => dotsWrap.appendChild(makeZDot(n)));
     wireDropzone(box, cat.id);
     categoriesEl.appendChild(box);
   });
@@ -1505,27 +1725,21 @@ function openPoolDetail(catId){
 }
 
 function renderPoolNoteList(catId){
-  const items = notes.filter(n => n.categoryId === catId).sort((a,b) => (b.t||0)-(a.t||0));
+  const items = notes.filter(n => !n.deleted && n.categoryId === catId).sort((a,b) => (b.t||0)-(a.t||0));
   if(items.length === 0){
     poolNoteListEl.innerHTML = '<div id="poolEmpty">まだメモがありません</div>';
     return;
   }
   poolNoteListEl.innerHTML = items.map(n => {
     const { title } = preview(n);
-    const poolColor = catId ? colorForCategory(catId) : '#C7C3B8';
-    const options = ['<option value="">— 移動先を選ぶ —</option>']
-      .concat(catId !== null ? ['<option value="__NONE__">未分類へ</option>'] : [])
-      .concat(categories.filter(c => c.id !== catId).map(c => `<option value="${c.id}">${escapeHtml(c.name)}へ</option>`))
-      .join('');
     return `
       <div class="poolItem" data-id="${n.id}">
         <span class="piCheck" data-id="${n.id}"></span>
         <div class="piBody">
           <div class="piTop">
-            <div class="piTitleRow"><span class="piCircle" style="background:${poolColor}"></span><span class="piTitle">${escapeHtml(title)}</span></div>
+            <div class="piTitleRow"><span class="piTitle">${escapeHtml(title)}</span></div>
             <span class="piDate">${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span>
           </div>
-          <select data-id="${n.id}">${options}</select>
         </div>
       </div>
     `;
@@ -1542,18 +1756,6 @@ function renderPoolNoteList(catId){
       openReadView(id);
     });
   });
-  poolNoteListEl.querySelectorAll('select').forEach(sel => {
-    sel.addEventListener('change', () => {
-      const id = sel.dataset.id;
-      const note = notes.find(n => n.id === id);
-      if(!note || !sel.value) return;
-      note.categoryId = sel.value === '__NONE__' ? null : sel.value;
-      note.categoryManual = true; // 手動で移動したので、以後の自動判定からは外す
-      requestSave();
-      renderPoolNoteList(catId);
-      renderClassify();
-    });
-  });
 }
 
 poolNameInputEl.addEventListener('change', () => {
@@ -1565,7 +1767,7 @@ poolNameInputEl.addEventListener('change', () => {
   renderClassify();
 });
 function runAutoClassifyOnUnclassified(){
-  const targets = notes.filter(n => !n.categoryId && !n.categoryManual);
+  const targets = notes.filter(n => !n.deleted && !n.categoryId && !n.categoryManual);
   targets.forEach(n => {
     const result = autoClassify(n);
     if(result) n.categoryId = result;
@@ -1697,6 +1899,43 @@ listToggleEl.addEventListener('click', () => {
   listToggleEl.textContent = (open ? '▾ 一覧' : '▸ 一覧');
 });
 
+const trashToggleEl = $('trashToggle'), trashSectionEl = $('trashSection'), trashListEl = $('trashList');
+trashToggleEl.addEventListener('click', () => {
+  const open = trashSectionEl.classList.toggle('open');
+  trashToggleEl.textContent = (open ? '▾ ゴミ箱' : '▸ ゴミ箱');
+  if(open) renderTrash();
+});
+function renderTrash(){
+  const deletedNotes = notes.filter(n => n.deleted).sort((a,b) => new Date(b.deletedAt||0) - new Date(a.deletedAt||0));
+  $('trashEmpty').style.display = deletedNotes.length ? 'none' : 'block';
+  trashListEl.innerHTML = deletedNotes.map(n => {
+    const { title } = preview(n);
+    return `
+      <div class="trashItem" data-id="${n.id}">
+        <span>${escapeHtml(title)}</span>
+        <span class="tiActions">
+          <span class="tiRestore" data-id="${n.id}">元に戻す</span>
+          <span class="tiPurge" data-id="${n.id}">完全に削除</span>
+        </span>
+      </div>
+    `;
+  }).join('');
+  trashListEl.querySelectorAll('.tiRestore').forEach(el => {
+    el.addEventListener('click', () => {
+      const note = notes.find(n => n.id === el.dataset.id);
+      if(note){ note.deleted = false; note.deletedAt = null; requestSave(); render(); renderTrash(); }
+    });
+  });
+  trashListEl.querySelectorAll('.tiPurge').forEach(el => {
+    el.addEventListener('click', async () => {
+      if(!await customConfirm('完全に削除しますか？この操作は元に戻せません。')) return;
+      notes = notes.filter(n => n.id !== el.dataset.id);
+      requestSave();
+      renderTrash();
+    });
+  });
+}
+
 $('searchInput').addEventListener('input', (e) => {
   searchQuery = e.target.value.trim().toLowerCase();
   $('searchBarWrap').classList.toggle('hasText', !!e.target.value);
@@ -1724,7 +1963,7 @@ let aiCurrentSuggestion = null;
 
 function generateAiSuggestion(){
   if(aiCurrentSuggestion) return; // 既に1件、保留中
-  const candidates = notes.filter(n => noteFullText(n).trim().length > 0);
+  const candidates = notes.filter(n => !n.deleted && noteFullText(n).trim().length > 0);
   let best = null, bestScore = 0;
   for(let i=0;i<candidates.length;i++){
     for(let j=i+1;j<candidates.length;j++){
