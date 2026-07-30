@@ -85,8 +85,6 @@
   #inputCard .dot:hover{transform:scale(1.15)}
   #inputCard .dot.r{background:#B37D6E}
   #inputCard .dot.y{background:#C4A05A}
-  #inputCard .dot.g{background:#7C9575}
-  #inputCard .dot.b{background:#7B93B0}
   #inputCard .dot.n{background:#D8D5CC}
   #inputCard .dot.active{box-shadow:0 0 0 3px rgba(0,0,0,.08)}
   #clearTemplate{
@@ -139,7 +137,15 @@
     display:flex;gap:10px;align-items:flex-start;
     font-family:var(--mono);font-size:13px;color:var(--ink);
   }
-  #inputCard .prompt::before{content:'';}
+  #memoTitleInput{
+    width:100%;border:none;outline:none;background:transparent;
+    font-family:var(--ui);font-size:14px;font-weight:500;color:var(--ink);
+    padding:0 0 10px 0;
+  }
+  #memoTitleInput::placeholder{color:#B4B0A6;font-weight:400}
+  #memoBodyWrap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+  #defaultSplit.hideTitle #memoTitleInput{display:none}
+  #defaultSplit.hideTitle #memoBodyWrap{margin-top:0;padding-top:0;border-top:none}
   #inputCard textarea{
     flex:1;background:transparent;border:none;outline:none;resize:none;
     color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.7;
@@ -390,30 +396,21 @@
     box-shadow:0 30px 70px -20px rgba(0,0,0,.25);
   }
   #readViewEditBtn{font-family:var(--mono);font-size:11px;color:var(--accent);cursor:pointer}
-  #readViewDeleteBtn{font-family:var(--mono);font-size:11px;color:#B15C4F;cursor:pointer;display:none}
+  #readViewDeleteBtn{font-family:var(--mono);font-size:11px;color:#B15C4F;cursor:pointer}
   #readViewCloseBtn{font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer}
   #readViewBody{padding:20px 22px;font-size:13px;line-height:1.9;color:var(--ink);cursor:pointer}
   #readViewBody.editing{cursor:default}
-  #readViewBody h2{font-size:15px;font-weight:500;margin:0 0 4px 0}
+  #readViewBody h2{font-size:15px;font-weight:500;margin:0 0 4px 0;outline:none}
   #readViewBody .cbDate{font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:14px}
   #readViewBody h3{font-size:11px;color:var(--dim);font-weight:500;letter-spacing:.05em;margin:14px 0 3px 0}
   #readViewBody p{margin:0 0 4px 0;white-space:pre-wrap}
-  #readViewBody .rvField{margin-bottom:14px}
-  #readViewBody .rvField textarea, #readViewBody .rvField input{
-    width:100%;border:1px solid var(--border);border-radius:6px;background:#fff;
-    font-family:var(--ui);font-size:13px;color:var(--ink);line-height:1.7;padding:8px 10px;resize:vertical;
-  }
-  #readViewBody .rvMemoInput{font-family:var(--mono);min-height:60px}
+  #readViewBody .rvField{outline:none}
+  #readViewBody.editing .rvField{border-bottom:1px dashed transparent;transition:border-color .15s}
+  #readViewBody.editing .rvField:focus{border-color:var(--accent)}
+  #readViewBody .rvField:empty::before{content:attr(data-placeholder);color:#B4B0A6}
 
   #empty{color:var(--dim);font-size:12px;text-align:center;padding:60px 0}
 
-  .cardWrap{position:relative;overflow:hidden}
-  .cardDeleteReveal{
-    position:absolute;inset:0;left:auto;width:76px;
-    background:#B15C4F;color:#fff;
-    display:flex;align-items:center;justify-content:center;
-    font-family:var(--mono);font-size:12px;cursor:pointer;
-  }
   .card{cursor:pointer;position:relative;background:var(--surface)}
   .card:hover{background:#F5F3EE}
 
@@ -523,17 +520,17 @@
 <div class="wrap">
 
   <header style="display:flex;align-items:center;justify-content:space-between">
-    <a id="universeLink" href="orbit01_firebase.html" style="display:flex;align-items:center;color:var(--dim)">
-      <svg width="100" height="100" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="2"  r="1.4" fill="currentColor"/>
-        <circle cx="7"  cy="7"  r="1.4" fill="currentColor"/>
-        <circle cx="17" cy="7"  r="1.4" fill="currentColor"/>
-        <circle cx="2"  cy="12" r="1.4" fill="currentColor"/>
-        <circle cx="12" cy="12" r="1.4" fill="none" stroke="currentColor" stroke-width="0.9"/>
-        <circle cx="22" cy="12" r="1.4" fill="currentColor"/>
-        <circle cx="7"  cy="17" r="1.4" fill="currentColor"/>
-        <circle cx="17" cy="17" r="1.4" fill="currentColor"/>
-        <circle cx="12" cy="22" r="1.4" fill="currentColor"/>
+    <a id="instrumentLink" href="instruments.html" style="display:flex;align-items:center;color:var(--dim);outline:none;-webkit-tap-highlight-color:transparent">
+      <svg width="20" height="12" viewBox="0 0 100 60" fill="none">
+        <line x1="5" y1="10" x2="95" y2="10" stroke="currentColor" stroke-width="0.8"/>
+        <line x1="5" y1="20" x2="95" y2="20" stroke="currentColor" stroke-width="0.8"/>
+        <line x1="5" y1="30" x2="95" y2="30" stroke="currentColor" stroke-width="0.8"/>
+        <line x1="5" y1="40" x2="95" y2="40" stroke="currentColor" stroke-width="0.8"/>
+        <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" stroke-width="0.8"/>
+        <circle cx="25" cy="30" r="3" fill="currentColor"/>
+        <circle cx="45" cy="15" r="3" fill="currentColor"/>
+        <circle cx="65" cy="40" r="3" fill="currentColor"/>
+        <circle cx="82" cy="25" r="3" fill="currentColor"/>
       </svg>
     </a>
 
@@ -570,17 +567,17 @@
     </span>
     </div>
 
-    <a id="instrumentLink" href="instruments.html" style="display:flex;align-items:center;color:var(--dim)">
-      <svg width="100" height="60" viewBox="0 0 100 60" fill="none">
-        <line x1="5" y1="10" x2="95" y2="10" stroke="currentColor" stroke-width="0.8"/>
-        <line x1="5" y1="20" x2="95" y2="20" stroke="currentColor" stroke-width="0.8"/>
-        <line x1="5" y1="30" x2="95" y2="30" stroke="currentColor" stroke-width="0.8"/>
-        <line x1="5" y1="40" x2="95" y2="40" stroke="currentColor" stroke-width="0.8"/>
-        <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" stroke-width="0.8"/>
-        <circle cx="25" cy="30" r="3" fill="currentColor"/>
-        <circle cx="45" cy="15" r="3" fill="currentColor"/>
-        <circle cx="65" cy="40" r="3" fill="currentColor"/>
-        <circle cx="82" cy="25" r="3" fill="currentColor"/>
+    <a id="universeLink" href="orbit01_firebase.html" style="display:flex;align-items:center;color:var(--dim);outline:none;-webkit-tap-highlight-color:transparent">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="2"  r="1.4" fill="currentColor"/>
+        <circle cx="7"  cy="7"  r="1.4" fill="currentColor"/>
+        <circle cx="17" cy="7"  r="1.4" fill="currentColor"/>
+        <circle cx="2"  cy="12" r="1.4" fill="currentColor"/>
+        <circle cx="12" cy="12" r="1.4" fill="none" stroke="currentColor" stroke-width="0.9"/>
+        <circle cx="22" cy="12" r="1.4" fill="currentColor"/>
+        <circle cx="7"  cy="17" r="1.4" fill="currentColor"/>
+        <circle cx="17" cy="17" r="1.4" fill="currentColor"/>
+        <circle cx="12" cy="22" r="1.4" fill="currentColor"/>
       </svg>
     </a>
   </header>
@@ -603,12 +600,15 @@
         </span>
       </div>
       <div class="barRight">
-        <span class="dot n" id="dotPlain" title="なにもない"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M4 8h8" stroke="#8E8B82" stroke-width="1.4" stroke-linecap="round"/></svg></span><span class="dot r" id="dotLoose" title="未定形テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3v10M3.5 5.5l9 5M12.5 5.5l-9 5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot y" id="dotList" title="リスト用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M4 5h8M4 8h8M4 11h8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="dot b" id="dotPoem" title="詩・歌詞用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M6 12V4l6-1v7" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5.3" cy="12" r="1.6" fill="#fff"/><circle cx="11.3" cy="10" r="1.6" fill="#fff"/></svg></span><span class="dot g" id="dotIdea" title="アイデア用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3a4 4 0 0 0-2 7.5V12h4v-1.5A4 4 0 0 0 8 3z" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.5 13.5h3" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg></span><span id="clearTemplate">テンプレ解除</span><span id="saveTemplate">保存</span>
+        <span class="dot n" id="dotPlain" title="なにもない"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M4 8h8" stroke="#8E8B82" stroke-width="1.4" stroke-linecap="round"/></svg></span><span class="dot r" id="dotIdea" title="アイデア用テンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M8 3a4 4 0 0 0-2 7.5V12h4v-1.5A4 4 0 0 0 8 3z" fill="none" stroke="#fff" stroke-width="1.2"/><path d="M6.5 13.5h3" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg></span><span class="dot y" id="dotList" title="todoテンプレート"><svg viewBox="0 0 16 16" width="7" height="7"><path d="M4 5h8M4 8h8M4 11h8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg></span><span id="clearTemplate">テンプレ解除</span><span id="saveTemplate">保存</span>
       </div>
     </div>
     <div class="body">
-      <div class="prompt">
-        <textarea id="memoInput" rows="1" placeholder="思いついたことを、そのまま。"></textarea>
+      <div id="defaultSplit">
+        <input type="text" id="memoTitleInput" placeholder="タイトル">
+        <div id="memoBodyWrap">
+          <textarea id="memoInput" rows="1" placeholder="思いついたことを、そのまま。"></textarea>
+        </div>
       </div>
 
       <div id="structuredFields"></div>
@@ -670,6 +670,7 @@
     </div>
     <div id="poolExportBar">
       <label id="poolSelectAllLabel"><span class="piCheck" id="poolSelectAll" style="margin-top:0"></span> 全選択</label>
+      <span class="exportBtn" id="poolBulkDeleteBtn" style="color:#B15C4F;border-color:#B15C4F">削除</span>
       <span class="exportBtn" id="poolCombineBtn">1枚にまとめる</span>
       <span class="exportBtn" id="poolMdBtn">md化</span>
       <span class="exportBtn" id="poolCopyBtn">コピー</span>
@@ -692,10 +693,10 @@
   <div id="readViewPanel">
     <div class="poolHeader">
       <span class="qtag" id="rvPoolTag" style="padding:3px 10px;font-size:10px"><i></i><span id="rvPoolTagText">未分類</span></span>
-      <div style="display:flex;gap:14px">
+      <div style="display:flex;gap:14px;align-items:center">
         <span id="readViewEditBtn">編集</span>
-        <span id="readViewDeleteBtn">削除</span>
         <span id="readViewCloseBtn">閉じる</span>
+        <span id="readViewDeleteBtn">削除</span>
       </div>
     </div>
     <div id="readViewBody"></div>
@@ -804,6 +805,7 @@ const listEl = $('list'), emptyEl = $('empty');
 const noteCircleEl = $('noteCircle');
 const btnSignIn = $('btnSignIn'), authWho = $('authWho');
 const memoInput = $('memoInput');
+const memoTitleInput = $('memoTitleInput');
 const qmenu = $('qmenu');
 
 btnSignIn.addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => console.error('ログインエラー:', e)));
@@ -919,9 +921,6 @@ function render(){
   for(const n of sorted){
     const poolColor = n.categoryId ? colorForCategory(n.categoryId) : '#C7C3B8';
     const { title, sub } = preview(n);
-    const wrap = document.createElement('div');
-    wrap.className = 'cardWrap';
-    wrap.innerHTML = `<div class="cardDeleteReveal" data-id="${n.id}">削除</div>`;
     const card = document.createElement('div');
     card.className = 'card';
     card.dataset.id = n.id;
@@ -938,13 +937,9 @@ function render(){
     `;
     card.addEventListener('click', (e) => {
       if(e.target.closest('.cardDeleteBtn')) return; // 削除ボタンは別ハンドラ
-      if(wrap.dataset.justDragged){ delete wrap.dataset.justDragged; return; } // スワイプ操作の直後のクリックは無視
-      if(wrap.classList.contains('revealed')){ wrap.classList.remove('revealed'); return; } // スワイプで開いている時は閉じるだけ
       openReadView(n.id);
     });
-    wireCardSwipe(card, wrap);
-    wrap.appendChild(card);
-    listEl.appendChild(wrap);
+    listEl.appendChild(card);
   }
 
   listEl.querySelectorAll('.cardDeleteBtn').forEach(btn => {
@@ -957,66 +952,9 @@ function render(){
       render();
     });
   });
-  listEl.querySelectorAll('.cardDeleteReveal').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.id;
-      if(!await customConfirm('このメモを削除しますか？')) return;
-      softDeleteNote(id);
-      requestSave();
-      render();
-    });
-  });
-
   renderClassify();
 }
 
-function wireCardSwipe(card, wrap){
-  let startX = null, startY = null, dx = 0, dragging = false, decided = false, isHorizontal = false;
-  const REVEAL = 76;
-
-  card.addEventListener('pointerdown', (e) => {
-    if(e.button !== undefined && e.button !== 0) return; // 左クリック/タッチ/ペンのみ
-    startX = e.clientX; startY = e.clientY;
-    dx = 0; dragging = true; decided = false; isHorizontal = false;
-    card.style.transition = 'none';
-  });
-
-  card.addEventListener('pointermove', (e) => {
-    if(!dragging) return;
-    const rawDx = e.clientX - startX, rawDy = e.clientY - startY;
-    if(!decided){
-      if(Math.abs(rawDx) > 6 || Math.abs(rawDy) > 6){
-        decided = true;
-        isHorizontal = Math.abs(rawDx) > Math.abs(rawDy);
-        if(isHorizontal) card.setPointerCapture && card.setPointerCapture(e.pointerId);
-      }
-    }
-    if(!isHorizontal) return;
-    e.preventDefault();
-    const base = wrap.classList.contains('revealed') ? -REVEAL : 0;
-    dx = Math.max(-REVEAL, Math.min(0, base + rawDx));
-    card.style.transform = `translateX(${dx}px)`;
-  });
-
-  function finish(){
-    if(!dragging) return;
-    dragging = false;
-    card.style.transition = 'transform .18s ease-out';
-    if(isHorizontal){
-      wrap.dataset.justDragged = '1';
-      if(dx < -REVEAL*0.5){
-        wrap.classList.add('revealed');
-        card.style.transform = `translateX(-${REVEAL}px)`;
-      } else {
-        wrap.classList.remove('revealed');
-        card.style.transform = 'translateX(0)';
-      }
-    }
-  }
-  card.addEventListener('pointerup', finish);
-  card.addEventListener('pointercancel', finish);
-}
 
 function escapeHtml(s){
   return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1113,6 +1051,18 @@ function renderFields(container, templateKey, values){
     else el.type = 'text';
     el.placeholder = f.ph || '';
     el.value = (values && values[f.key]) || '';
+    if(templateKey === 'list' && f.key === 'concept'){
+      el.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' && !e.metaKey && !e.ctrlKey){
+          e.preventDefault();
+          const pos = el.selectionStart;
+          const insert = '\n・';
+          el.value = el.value.slice(0, pos) + insert + el.value.slice(pos);
+          const newPos = pos + insert.length;
+          el.setSelectionRange(newPos, newPos);
+        }
+      });
+    }
     wrap.appendChild(el);
     container.appendChild(wrap);
   }
@@ -1260,6 +1210,8 @@ function autoClassify(note){
 function addMemo(){
   const text = memoInput.value.trim();
   const f = readFields(structuredFieldsEl, activeTemplate);
+  const defaultTitle = (activeTemplate === null) ? memoTitleInput.value.trim() : '';
+  const effectiveTitle = defaultTitle || f.title;
 
   if(!currentUser) return;
 
@@ -1267,13 +1219,13 @@ function addMemo(){
     // 編集中のメモを更新する（新規作成はしない）
     const note = notes.find(n => n.id === editingNoteId);
     if(note){
-      if(!text && !f.title){
+      if(!text && !effectiveTitle){
         // 空にして離れた場合は削除する（Keepと同じ挙動）
         softDeleteNote(editingNoteId);
       } else {
         note.text = text;
         note.type = activeTemplate;
-        note.title = f.title; note.purpose = f.purpose; note.concept = f.concept; note.keywords = f.keywords;
+        note.title = effectiveTitle; note.purpose = f.purpose; note.concept = f.concept; note.keywords = f.keywords;
         applyPoolChoice(note, false);
       }
       requestSave();
@@ -1283,7 +1235,7 @@ function addMemo(){
     return;
   }
 
-  if(!text && !f.title) return; // 何も書かれていなければ何もしない
+  if(!text && !effectiveTitle) return; // 何も書かれていなければ何もしない
 
   const now = Date.now();
   const newNote = {
@@ -1294,7 +1246,7 @@ function addMemo(){
     text: text,
     sub: '',
     type: activeTemplate,
-    title: f.title, purpose: f.purpose, concept: f.concept, keywords: f.keywords,
+    title: effectiveTitle, purpose: f.purpose, concept: f.concept, keywords: f.keywords,
     categoryId: null,
     categoryManual: false,
     hybrid: null, tentative:false, born:null,
@@ -1305,16 +1257,18 @@ function addMemo(){
   playConvergeEffect(newNote.categoryId, () => {
     notes.push(newNote);
     memoInput.value = '';
+    memoTitleInput.value = '';
     activeTemplate = null;
     structuredFieldsEl.innerHTML = '';
     expanded = false; collapsed = false;
     inputCard.classList.remove('expanded','collapsed');
     document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
+    $('defaultSplit').classList.remove('hideTitle');
     resetPoolPicker(null);
     autoGrow();
     render();
     requestSave();
-    memoInput.focus(); // 続けて次のメモを書き始められるように
+    memoTitleInput.focus(); // 続けて次のメモを書き始められるように
   });
 }
 
@@ -1358,22 +1312,6 @@ memoInput.addEventListener('keydown', (e) => {
   if(e.key === 'Enter' && (e.metaKey || e.ctrlKey)){
     e.preventDefault();
     addMemo();
-    return;
-  }
-  // 「なにもない」を選んでいない時のデフォルト挙動：
-  // 1行目を書き終えて最初の⏎を押した瞬間、区切り線を自動で挿し込み、
-  // 以降は箇条書き感覚で自由に書き続けられるようにする。
-  if(e.key === 'Enter' && !e.metaKey && !e.ctrlKey && activeTemplate !== 'plain'){
-    const beforeCursor = memoInput.value.slice(0, memoInput.selectionStart);
-    if(!beforeCursor.includes('\n') && beforeCursor.trim().length > 0){
-      e.preventDefault();
-      const pos = memoInput.selectionStart;
-      const insert = '\n---\n';
-      memoInput.value = memoInput.value.slice(0, pos) + insert + memoInput.value.slice(pos);
-      const newPos = pos + insert.length;
-      memoInput.setSelectionRange(newPos, newPos);
-      autoGrow();
-    }
   }
 });
 
@@ -1408,7 +1346,7 @@ memoInput.addEventListener('input', autoGrow);
 let collapsed = false, expanded = false;
 
 function toggleTemplate(key){
-  const dotEl = {idea:$('dotIdea'), loose:$('dotLoose'), list:$('dotList'), poem:$('dotPoem'), plain:$('dotPlain')}[key];
+  const dotEl = {idea:$('dotIdea'), list:$('dotList'), plain:$('dotPlain')}[key];
   if(activeTemplate === key){
     closeTemplate();
     return;
@@ -1417,6 +1355,7 @@ function toggleTemplate(key){
   activeTemplate = key;
   document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
   dotEl.classList.add('active');
+  $('defaultSplit').classList.add('hideTitle');
   if(key === 'plain'){
     // 「なにもない」は自動区切りを止めるだけの印。展開はしない。
     structuredFieldsEl.innerHTML = '';
@@ -1436,6 +1375,7 @@ function closeTemplate(){
   inputCard.classList.remove('expanded');
   document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
   structuredFieldsEl.innerHTML = '';
+  $('defaultSplit').classList.remove('hideTitle');
 }
 
 $('clearTemplate').addEventListener('click', closeTemplate);
@@ -1451,7 +1391,7 @@ $('dotPoem').addEventListener('click', () => toggleTemplate('poem'));
 let editingNoteId = null;
 const cardDeleteEl = $('cardDelete');
 
-/* ---------- 見る・編集ウィンドウ（同じ画面の中で編集まで完結する） ---------- */
+/* ---------- 見る・編集ウィンドウ（同じ見た目のまま、その場で書き換えられる） ---------- */
 const readViewOverlayEl = $('readViewOverlay'), readViewBodyEl = $('readViewBody');
 const rvPoolTagEl = $('rvPoolTag'), rvPoolTagTextEl = $('rvPoolTagText');
 let readViewNoteId = null;
@@ -1463,40 +1403,24 @@ function updateRvPoolTag(note){
   rvPoolTagTextEl.textContent = poolLabelForNote(note);
 }
 
-function renderReadOnly(note){
-  readViewBodyEl.classList.remove('editing');
+function renderNoteView(note, editable){
+  readViewBodyEl.classList.toggle('editing', editable);
   const hasRealTitle = !!(note.title && note.title.trim());
-  const { title } = preview(note);
-  const heading = hasRealTitle ? title : 'メモ';
-  const dateStr = fmtDateTime(note.createdAt || (note.t ? new Date(note.t).toISOString() : ''));
+  const ce = editable ? 'contenteditable="true"' : '';
+  let html = `<h2 class="rvField" data-key="__title" data-placeholder="メモ" ${ce}>${escapeHtml(hasRealTitle ? note.title : '')}</h2>`;
+  html += `<div class="cbDate">${fmtDateTime(note.createdAt || (note.t ? new Date(note.t).toISOString() : ''))}</div>`;
+
   const tpl = TEMPLATES[note.type];
-  let body = '';
   if(tpl && tpl.fields.length){
     for(const f of tpl.fields){
       if(f.key === 'title') continue;
       const val = f.key === 'keywords' ? (note.keywords||[]).join(', ') : (note[f.key] || '');
-      if(val) body += `<h3>${escapeHtml(f.label)}</h3><p>${escapeHtml(val)}</p>`;
+      if(!editable && !val) continue;
+      html += `<h3>${escapeHtml(f.label)}</h3><p class="rvField" data-key="${f.key}" data-placeholder="（空欄）" ${ce}>${escapeHtml(val)}</p>`;
     }
-    if(note.text) body += `<h3>メモ</h3><p>${escapeHtml(note.text)}</p>`;
-  } else if(note.text){
-    body = `<p>${escapeHtml(note.text)}</p>`;
-  }
-  readViewBodyEl.innerHTML = `<h2>${escapeHtml(heading)}</h2><div class="cbDate">${dateStr}</div>${body}`;
-}
-
-function renderEditMode(note){
-  readViewBodyEl.classList.add('editing');
-  let html = `<div class="rvField"><div class="flabel">メモ</div><textarea class="rvMemoInput" id="rvMemo" rows="3">${escapeHtml(note.text||'')}</textarea></div>`;
-  const tpl = TEMPLATES[note.type];
-  if(tpl && tpl.fields.length){
-    for(const f of tpl.fields){
-      const val = f.key==='keywords' ? (note.keywords||[]).join(', ') : (note[f.key]||'');
-      html += `<div class="rvField"><div class="flabel">${escapeHtml(f.label)}</div>`;
-      html += f.kind==='textarea'
-        ? `<textarea id="rvf_${f.key}" rows="${f.rows||2}">${escapeHtml(val)}</textarea>`
-        : `<input type="text" id="rvf_${f.key}" value="${escapeHtml(val)}">`;
-      html += `</div>`;
-    }
+    if(editable || note.text) html += `<h3>メモ</h3><p class="rvField" data-key="__text" data-placeholder="（空欄）" ${ce}>${escapeHtml(note.text||'')}</p>`;
+  } else {
+    if(editable || note.text) html += `<p class="rvField" data-key="__text" data-placeholder="（空欄）" ${ce}>${escapeHtml(note.text||'')}</p>`;
   }
   readViewBodyEl.innerHTML = html;
 }
@@ -1507,34 +1431,42 @@ function openReadView(id){
   readViewNoteId = id;
   readViewEditing = false;
   updateRvPoolTag(note);
-  $('readViewDeleteBtn').style.display = 'none';
-  renderReadOnly(note);
+  renderNoteView(note, false);
   readViewOverlayEl.classList.add('open');
 }
+readViewBodyEl.addEventListener('click', () => {
+  if(!readViewEditing && readViewNoteId) enterEditMode();
+});
 
 function enterEditMode(){
   const note = notes.find(n => n.id === readViewNoteId);
   if(!note) return;
   readViewEditing = true;
-  $('readViewDeleteBtn').style.display = 'inline';
-  renderEditMode(note);
+  renderNoteView(note, true);
+  const titleEl = readViewBodyEl.querySelector('[data-key="__title"]');
+  if(titleEl){ titleEl.focus(); placeCursorAtEnd(titleEl); }
+}
+function placeCursorAtEnd(el){
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
 }
 
 function saveReadViewEdits(){
   if(!readViewNoteId || !readViewEditing) return;
   const note = notes.find(n => n.id === readViewNoteId);
   if(!note) return;
-  const memoEl = $('rvMemo');
-  if(memoEl) note.text = memoEl.value.trim();
-  const tpl = TEMPLATES[note.type];
-  if(tpl && tpl.fields.length){
-    for(const f of tpl.fields){
-      const el = document.getElementById('rvf_'+f.key);
-      if(!el) continue;
-      if(f.key === 'keywords') note.keywords = el.value.split(',').map(s=>s.trim()).filter(Boolean);
-      else note[f.key] = el.value.trim();
-    }
-  }
+  readViewBodyEl.querySelectorAll('.rvField').forEach(el => {
+    const key = el.dataset.key;
+    const val = el.textContent.trim();
+    if(key === '__title') note.title = val;
+    else if(key === '__text') note.text = val;
+    else if(key === 'keywords') note.keywords = val.split(',').map(s=>s.trim()).filter(Boolean);
+    else note[key] = val;
+  });
   requestSave();
   render();
 }
@@ -1546,9 +1478,6 @@ function closeReadView(){
   readViewEditing = false;
 }
 
-readViewBodyEl.addEventListener('click', () => {
-  if(!readViewEditing && readViewNoteId) enterEditMode();
-});
 $('readViewEditBtn').addEventListener('click', (e) => {
   e.stopPropagation();
   if(!readViewEditing) enterEditMode();
@@ -1560,7 +1489,7 @@ $('readViewCloseBtn').addEventListener('click', (e) => {
 $('readViewDeleteBtn').addEventListener('click', async (e) => {
   e.stopPropagation();
   if(!readViewNoteId) return;
-  if(!await customConfirm('このメモを削除しますか？')) return;
+  if(!await customConfirm('このメモを削除しますか？（ゴミ箱に移動します）')) return;
   softDeleteNote(readViewNoteId);
   requestSave();
   readViewOverlayEl.classList.remove('open');
@@ -1614,16 +1543,20 @@ function openCardForEdit(id){
   if(activeTemplate === 'plain'){
     expanded = false; inputCard.classList.remove('expanded');
     structuredFieldsEl.innerHTML = '';
+    $('defaultSplit').classList.add('hideTitle');
     const dotEl = $('dotPlain');
     if(dotEl) dotEl.classList.add('active');
   } else if(activeTemplate){
     expanded = true; inputCard.classList.add('expanded');
-    const dotEl = {idea:$('dotIdea'), loose:$('dotLoose'), list:$('dotList'), poem:$('dotPoem')}[activeTemplate];
+    $('defaultSplit').classList.add('hideTitle');
+    const dotEl = {idea:$('dotIdea'), list:$('dotList')}[activeTemplate];
     if(dotEl) dotEl.classList.add('active');
     renderFields(structuredFieldsEl, activeTemplate, note);
   } else {
     expanded = false; inputCard.classList.remove('expanded');
     structuredFieldsEl.innerHTML = '';
+    $('defaultSplit').classList.remove('hideTitle');
+    memoTitleInput.value = note.title || '';
   }
   inputCard.classList.add('editing');
   resetPoolPicker(note);
@@ -1638,8 +1571,10 @@ function exitEditMode(){
   inputCard.classList.remove('editing','expanded');
   activeTemplate = null;
   memoInput.value = '';
+  memoTitleInput.value = '';
   structuredFieldsEl.innerHTML = '';
   document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
+  $('defaultSplit').classList.remove('hideTitle');
   resetPoolPicker(null);
   autoGrow();
 }
@@ -1836,6 +1771,16 @@ function getSelectedPoolNotes(){
   const ids = Array.from(poolNoteListEl.querySelectorAll('.piCheck.checked')).map(el => el.dataset.id);
   return notes.filter(n => ids.includes(n.id));
 }
+
+$('poolBulkDeleteBtn').addEventListener('click', async () => {
+  const selected = getSelectedPoolNotes();
+  if(selected.length === 0) return;
+  if(!await customConfirm(`選んだ${selected.length}件を削除しますか？（ゴミ箱に移動します）`)) return;
+  selected.forEach(n => softDeleteNote(n.id));
+  requestSave();
+  renderPoolNoteList(openPoolId);
+  renderClassify();
+});
 
 $('poolSelectAll').addEventListener('click', (e) => {
   const nowChecked = !e.target.classList.contains('checked');
