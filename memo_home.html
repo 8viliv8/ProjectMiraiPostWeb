@@ -232,7 +232,7 @@
   .qtag[data-q="kaji"] i{background:var(--kaji)}
   .qtag[data-q="shigoto"] i{background:var(--shigoto)}
 
-  .qmenu{position:absolute;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 12px 30px -10px rgba(0,0,0,.25);overflow-y:auto;max-height:260px;z-index:100;display:none}
+  .qmenu{position:absolute;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 12px 30px -10px rgba(0,0,0,.25);overflow:hidden;z-index:100;display:none}
   .qmenu.open{display:block}
   .qmenu div{padding:7px 14px;font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:8px;cursor:pointer}
   .qmenu div:hover{background:var(--bg)}
@@ -369,11 +369,7 @@
     content:'';position:absolute;left:4px;top:1px;width:4px;height:8px;
     border:solid #fff;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);
   }
-  .poolItem .piCheck{display:none}
-  #poolNoteList.selectMode .poolItem .piCheck{display:inline-block}
   .poolItem .piBody{flex:1}
-  .piMeta{margin-top:4px}
-  .piMeta .piDate{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap}
 
   .poolHeaderTitle{display:flex;align-items:center;gap:8px}
   .poolHeaderCircle{width:9px;height:9px;border-radius:50%;flex:none}
@@ -409,8 +405,6 @@
     box-shadow:0 30px 70px -20px rgba(0,0,0,.25);
   }
   #readViewEditBtn{font-family:var(--mono);font-size:11px;color:var(--accent);cursor:pointer}
-  #readViewCopyBtn{font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer}
-  #readViewCopyBtn:hover{color:var(--ink)}
   #readViewDeleteBtn{font-family:var(--mono);font-size:11px;color:#B15C4F;cursor:pointer}
   #readViewCloseBtn{font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer}
   #readViewBody{padding:20px 22px;font-size:13px;line-height:1.9;color:var(--ink);cursor:pointer}
@@ -638,6 +632,7 @@
         <span id="footHint">⏎改行/保存タップ・他をタップで保存</span>
         <div style="display:flex;align-items:center;gap:10px">
           <span class="qtag" id="poolTag" style="padding:3px 10px;font-size:10px"><i style="background:#C7C3B8"></i><span id="poolTagText">未分類</span></span>
+          <span id="cardCopyBtn">コピー</span>
           <span id="cardDelete">削除</span>
         </div>
       </div>
@@ -690,12 +685,11 @@
       <span id="poolCloseBtn">閉じる</span>
     </div>
     <div id="poolExportBar">
-      <span class="exportBtn" id="poolSelectModeBtn">複数選んでコピー</span>
-      <label id="poolSelectAllLabel" style="display:none"><span class="piCheck" id="poolSelectAll" style="margin-top:0"></span> 全選択</label>
-      <span class="exportBtn" id="poolCombineBtn" style="display:none">1枚にまとめる</span>
-      <span class="exportBtn" id="poolMdBtn" style="display:none">md化</span>
-      <span class="exportBtn" id="poolCopyBtn" style="display:none">コピー</span>
-      <span class="exportBtn" id="poolSelectDoneBtn" style="display:none">完了</span>
+      <label id="poolSelectAllLabel"><span class="piCheck" id="poolSelectAll" style="margin-top:0"></span> 全選択</label>
+      <span class="exportBtn" id="poolBulkDeleteBtn" style="color:#B15C4F;border-color:#B15C4F">削除</span>
+      <span class="exportBtn" id="poolCombineBtn">1枚にまとめる</span>
+      <span class="exportBtn" id="poolMdBtn">md化</span>
+      <span class="exportBtn" id="poolCopyBtn">コピー</span>
     </div>
     <div id="poolNoteList"></div>
   </div>
@@ -717,7 +711,6 @@
       <span class="qtag" id="rvPoolTag" style="padding:3px 10px;font-size:10px"><i></i><span id="rvPoolTagText">未分類</span></span>
       <div style="display:flex;gap:14px;align-items:center;margin-left:auto">
         <span id="readViewEditBtn">編集</span>
-        <span id="readViewCopyBtn">コピー</span>
         <span id="readViewDeleteBtn" style="margin-left:22px">削除</span>
         <span id="readViewCloseBtn" style="margin-left:22px">閉じる</span>
       </div>
@@ -861,10 +854,6 @@ onAuthStateChanged(auth, async (user) => {
       categories = ['音楽','写真','アプリ開発','その他','不明','AI提案'].map((name, i) =>
         ({ id: 'cat_default_' + i, name })
       );
-      requestSave();
-    } else if(!categories.some(c => c.name === 'AI提案')){
-      // 既存アカウントに「AI提案」プールが無ければ追加する（移行措置）
-      categories.push({ id: 'cat_' + Date.now().toString(36), name: 'AI提案' });
       requestSave();
     }
     render();
@@ -1547,19 +1536,6 @@ $('readViewEditBtn').addEventListener('click', (e) => {
   e.stopPropagation();
   if(!readViewEditing) enterEditMode();
 });
-$('readViewCopyBtn').addEventListener('click', async (e) => {
-  e.stopPropagation();
-  const note = notes.find(n => n.id === readViewNoteId);
-  if(!note) return;
-  const text = noteToMarkdownSection(note);
-  try{
-    await navigator.clipboard.writeText(text);
-    const btn = $('readViewCopyBtn');
-    const original = btn.textContent;
-    btn.textContent = 'コピーしました ✓';
-    setTimeout(() => btn.textContent = original, 1500);
-  }catch(err){ alert('コピーに失敗しました。'); }
-});
 $('readViewCloseBtn').addEventListener('click', (e) => {
   e.stopPropagation();
   closeReadView();
@@ -1674,6 +1650,32 @@ cardDeleteEl.addEventListener('click', async () => {
   render();
 });
 
+$('cardCopyBtn').addEventListener('click', async () => {
+  const title = memoTitleInput.value.trim();
+  const lines = [];
+  if(title) lines.push(title);
+  const tpl = TEMPLATES[activeTemplate];
+  if(tpl && tpl.fields.length){
+    for(const f of tpl.fields){
+      if(f.key === 'title') continue;
+      const el = document.getElementById(structuredFieldsEl.id + '_' + f.key);
+      const val = el ? el.value.trim() : '';
+      if(val) lines.push(`${f.label}: ${val}`);
+    }
+  }
+  const body = memoInput.value.trim();
+  if(body) lines.push(body);
+  const text = lines.join('\n\n');
+  if(!text) return;
+  try{
+    await navigator.clipboard.writeText(text);
+    const btn = $('cardCopyBtn');
+    const original = btn.textContent;
+    btn.textContent = 'コピーしました ✓';
+    setTimeout(() => btn.textContent = original, 1500);
+  }catch(e){ alert('コピーに失敗しました。'); }
+});
+
 const poolEl = $('pool'), categoriesEl = $('categories');
 poolEl.style.cursor = 'pointer';
 poolEl.addEventListener('click', (e) => {
@@ -1750,7 +1752,6 @@ let openPoolId = null;
 
 function openPoolDetail(catId){
   $('poolSelectAll').classList.remove('checked');
-  exitPoolSelectMode();
   if(catId === null){
     openPoolId = null;
     poolNameInputEl.value = '未分類';
@@ -1788,10 +1789,10 @@ function renderPoolNoteList(catId){
         <div class="piBody">
           <div class="piTop">
             <div class="piTitleRow"><span class="piTitle">${escapeHtml(title)}</span></div>
+            <span class="piDate">${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span>
             <span class="piDeleteBtn" data-id="${n.id}" title="削除">×</span>
           </div>
           ${sub ? `<div class="piSub">${escapeHtml(sub)}</div>` : ''}
-          <div class="piMeta"><span class="piDate">${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span></div>
         </div>
       </div>
     `;
@@ -1814,13 +1815,7 @@ function renderPoolNoteList(catId){
   poolNoteListEl.querySelectorAll('.poolItem .piBody').forEach(el => {
     el.addEventListener('click', (e) => {
       if(e.target.closest('.piDeleteBtn')) return; // 削除ボタンは別ハンドラ
-      const item = el.closest('.poolItem');
-      const id = item.dataset.id;
-      if(poolNoteListEl.classList.contains('selectMode')){
-        const cb = item.querySelector('.piCheck');
-        if(cb) cb.classList.toggle('checked');
-        return;
-      }
+      const id = el.closest('.poolItem').dataset.id;
       poolOverlayEl.classList.remove('open');
       openReadView(id);
     });
@@ -1878,35 +1873,21 @@ function getSelectedPoolNotes(){
   return notes.filter(n => ids.includes(n.id));
 }
 
+$('poolBulkDeleteBtn').addEventListener('click', async () => {
+  const selected = getSelectedPoolNotes();
+  if(selected.length === 0) return;
+  if(!await customConfirm(`選んだ${selected.length}件を削除しますか？（ゴミ箱に移動します）`)) return;
+  selected.forEach(n => softDeleteNote(n.id));
+  requestSave();
+  renderPoolNoteList(openPoolId);
+  renderClassify();
+});
 
 $('poolSelectAll').addEventListener('click', (e) => {
   const nowChecked = !e.target.classList.contains('checked');
   e.target.classList.toggle('checked', nowChecked);
   poolNoteListEl.querySelectorAll('.piCheck').forEach(cb => cb.classList.toggle('checked', nowChecked));
 });
-
-function enterPoolSelectMode(){
-  poolNoteListEl.classList.add('selectMode');
-  $('poolSelectModeBtn').style.display = 'none';
-  $('poolSelectAllLabel').style.display = '';
-  $('poolCombineBtn').style.display = '';
-  $('poolMdBtn').style.display = '';
-  $('poolCopyBtn').style.display = '';
-  $('poolSelectDoneBtn').style.display = '';
-}
-function exitPoolSelectMode(){
-  poolNoteListEl.classList.remove('selectMode');
-  poolNoteListEl.querySelectorAll('.piCheck').forEach(cb => cb.classList.remove('checked'));
-  $('poolSelectAll').classList.remove('checked');
-  $('poolSelectModeBtn').style.display = '';
-  $('poolSelectAllLabel').style.display = 'none';
-  $('poolCombineBtn').style.display = 'none';
-  $('poolMdBtn').style.display = 'none';
-  $('poolCopyBtn').style.display = 'none';
-  $('poolSelectDoneBtn').style.display = 'none';
-}
-$('poolSelectModeBtn').addEventListener('click', enterPoolSelectMode);
-$('poolSelectDoneBtn').addEventListener('click', exitPoolSelectMode);
 
 $('poolMdBtn').addEventListener('click', () => {
   const selected = getSelectedPoolNotes();
