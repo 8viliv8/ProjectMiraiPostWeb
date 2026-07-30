@@ -232,7 +232,7 @@
   .qtag[data-q="kaji"] i{background:var(--kaji)}
   .qtag[data-q="shigoto"] i{background:var(--shigoto)}
 
-  .qmenu{position:absolute;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 12px 30px -10px rgba(0,0,0,.25);overflow:hidden;z-index:100;display:none}
+  .qmenu{position:absolute;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 12px 30px -10px rgba(0,0,0,.25);overflow-y:auto;max-height:260px;z-index:100;display:none}
   .qmenu.open{display:block}
   .qmenu div{padding:7px 14px;font-family:var(--mono);font-size:11px;display:flex;align-items:center;gap:8px;cursor:pointer}
   .qmenu div:hover{background:var(--bg)}
@@ -369,7 +369,11 @@
     content:'';position:absolute;left:4px;top:1px;width:4px;height:8px;
     border:solid #fff;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);
   }
+  .poolItem .piCheck{display:none}
+  #poolNoteList.selectMode .poolItem .piCheck{display:inline-block}
   .poolItem .piBody{flex:1}
+  .piMeta{margin-top:4px}
+  .piMeta .piDate{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap}
 
   .poolHeaderTitle{display:flex;align-items:center;gap:8px}
   .poolHeaderCircle{width:9px;height:9px;border-radius:50%;flex:none}
@@ -405,6 +409,13 @@
     box-shadow:0 30px 70px -20px rgba(0,0,0,.25);
   }
   #readViewEditBtn{font-family:var(--mono);font-size:11px;color:var(--accent);cursor:pointer}
+  #readViewFoot{padding:0 22px 18px;display:flex;justify-content:flex-end}
+  #readViewCopyBtn{
+    font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;
+    border:1px solid var(--border);border-radius:999px;padding:5px 12px;
+  }
+  #readViewCopyBtn:hover{border-color:var(--accent);color:var(--ink)}
+  #readViewCopyBtn:hover{color:var(--ink)}
   #readViewDeleteBtn{font-family:var(--mono);font-size:11px;color:#B15C4F;cursor:pointer}
   #readViewCloseBtn{font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer}
   #readViewBody{padding:20px 22px;font-size:13px;line-height:1.9;color:var(--ink);cursor:pointer}
@@ -516,6 +527,26 @@
   #trashToggle:hover{color:var(--ink);opacity:1}
   #trashSection{display:none;margin-top:12px}
   #trashSection.open{display:block}
+
+  #categoryListsSection{margin-top:20px}
+  .catListToggle{
+    display:flex;align-items:center;gap:7px;
+    font-family:var(--mono);font-size:11px;color:var(--dim);
+    letter-spacing:.05em;cursor:pointer;user-select:none;
+    padding:10px 0;border-top:1px solid var(--border);
+  }
+  .catListToggle:hover{color:var(--ink)}
+  .catListToggle .catDot{width:7px;height:7px;border-radius:50%;flex:none}
+  .catListBody{display:none;margin:0 0 4px 0}
+  .catListBody.open{display:block}
+  .catListItem{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:10px 4px;border-bottom:1px solid var(--border);cursor:pointer;
+  }
+  .catListItem:hover{background:var(--surface)}
+  .catListItem .cliTitle{font-size:13px;color:var(--ink)}
+  .catListItem .cliDate{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap;flex:none}
+  .catListEmpty{font-size:12px;color:var(--dim);padding:14px 4px;text-align:center}
   .trashItem{
     display:flex;justify-content:space-between;align-items:center;gap:10px;
     padding:8px 0;border-bottom:1px solid var(--border);
@@ -632,7 +663,6 @@
         <span id="footHint">⏎改行/保存タップ・他をタップで保存</span>
         <div style="display:flex;align-items:center;gap:10px">
           <span class="qtag" id="poolTag" style="padding:3px 10px;font-size:10px"><i style="background:#C7C3B8"></i><span id="poolTagText">未分類</span></span>
-          <span id="cardCopyBtn">コピー</span>
           <span id="cardDelete">削除</span>
         </div>
       </div>
@@ -656,6 +686,8 @@
     <div id="list"></div>
     <div id="empty" style="display:none">まだメモがありません。上の欄から書き始めてください。</div>
   </div>
+
+  <div id="categoryListsSection"></div>
 
   <div id="trashToggle">▸ ゴミ箱</div>
   <div id="trashSection">
@@ -685,11 +717,12 @@
       <span id="poolCloseBtn">閉じる</span>
     </div>
     <div id="poolExportBar">
-      <label id="poolSelectAllLabel"><span class="piCheck" id="poolSelectAll" style="margin-top:0"></span> 全選択</label>
-      <span class="exportBtn" id="poolBulkDeleteBtn" style="color:#B15C4F;border-color:#B15C4F">削除</span>
-      <span class="exportBtn" id="poolCombineBtn">1枚にまとめる</span>
-      <span class="exportBtn" id="poolMdBtn">md化</span>
-      <span class="exportBtn" id="poolCopyBtn">コピー</span>
+      <span class="exportBtn" id="poolSelectModeBtn">複数選んでコピー</span>
+      <label id="poolSelectAllLabel" style="display:none"><span class="piCheck" id="poolSelectAll" style="margin-top:0"></span> 全選択</label>
+      <span class="exportBtn" id="poolCombineBtn" style="display:none">1枚にまとめる</span>
+      <span class="exportBtn" id="poolMdBtn" style="display:none">md化</span>
+      <span class="exportBtn" id="poolCopyBtn" style="display:none">コピー</span>
+      <span class="exportBtn" id="poolSelectDoneBtn" style="display:none">完了</span>
     </div>
     <div id="poolNoteList"></div>
   </div>
@@ -716,6 +749,7 @@
       </div>
     </div>
     <div id="readViewBody"></div>
+    <div id="readViewFoot"><span id="readViewCopyBtn">コピー</span></div>
   </div>
 </div>
 
@@ -855,6 +889,10 @@ onAuthStateChanged(auth, async (user) => {
         ({ id: 'cat_default_' + i, name })
       );
       requestSave();
+    } else if(!categories.some(c => c.name === 'AI提案')){
+      // 既存アカウントに「AI提案」プールが無ければ追加する（移行措置）
+      categories.push({ id: 'cat_' + Date.now().toString(36), name: 'AI提案' });
+      requestSave();
     }
     render();
   } else {
@@ -983,6 +1021,7 @@ function render(){
     });
   });
   renderClassify();
+  renderCategoryLists();
 }
 
 
@@ -1530,11 +1569,25 @@ function closeReadView(){
   readViewOverlayEl.classList.remove('open');
   readViewNoteId = null;
   readViewEditing = false;
+  if(poolOverlayEl.classList.contains('open')) renderPoolNoteList(openPoolId);
 }
 
 $('readViewEditBtn').addEventListener('click', (e) => {
   e.stopPropagation();
   if(!readViewEditing) enterEditMode();
+});
+$('readViewCopyBtn').addEventListener('click', async (e) => {
+  e.stopPropagation();
+  const note = notes.find(n => n.id === readViewNoteId);
+  if(!note) return;
+  const text = noteToMarkdownSection(note);
+  try{
+    await navigator.clipboard.writeText(text);
+    const btn = $('readViewCopyBtn');
+    const original = btn.textContent;
+    btn.textContent = 'コピーしました ✓';
+    setTimeout(() => btn.textContent = original, 1500);
+  }catch(err){ alert('コピーに失敗しました。'); }
 });
 $('readViewCloseBtn').addEventListener('click', (e) => {
   e.stopPropagation();
@@ -1549,6 +1602,7 @@ $('readViewDeleteBtn').addEventListener('click', async (e) => {
   readViewOverlayEl.classList.remove('open');
   readViewNoteId = null; readViewEditing = false;
   render();
+  if(poolOverlayEl.classList.contains('open')) renderPoolNoteList(openPoolId);
 });
 readViewOverlayEl.addEventListener('click', (e) => {
   if(e.target === readViewOverlayEl) closeReadView(); // 画面外をタップすると、編集中なら保存してから閉じる
@@ -1650,32 +1704,6 @@ cardDeleteEl.addEventListener('click', async () => {
   render();
 });
 
-$('cardCopyBtn').addEventListener('click', async () => {
-  const title = memoTitleInput.value.trim();
-  const lines = [];
-  if(title) lines.push(title);
-  const tpl = TEMPLATES[activeTemplate];
-  if(tpl && tpl.fields.length){
-    for(const f of tpl.fields){
-      if(f.key === 'title') continue;
-      const el = document.getElementById(structuredFieldsEl.id + '_' + f.key);
-      const val = el ? el.value.trim() : '';
-      if(val) lines.push(`${f.label}: ${val}`);
-    }
-  }
-  const body = memoInput.value.trim();
-  if(body) lines.push(body);
-  const text = lines.join('\n\n');
-  if(!text) return;
-  try{
-    await navigator.clipboard.writeText(text);
-    const btn = $('cardCopyBtn');
-    const original = btn.textContent;
-    btn.textContent = 'コピーしました ✓';
-    setTimeout(() => btn.textContent = original, 1500);
-  }catch(e){ alert('コピーに失敗しました。'); }
-});
-
 const poolEl = $('pool'), categoriesEl = $('categories');
 poolEl.style.cursor = 'pointer';
 poolEl.addEventListener('click', (e) => {
@@ -1752,6 +1780,7 @@ let openPoolId = null;
 
 function openPoolDetail(catId){
   $('poolSelectAll').classList.remove('checked');
+  exitPoolSelectMode();
   if(catId === null){
     openPoolId = null;
     poolNameInputEl.value = '未分類';
@@ -1789,10 +1818,10 @@ function renderPoolNoteList(catId){
         <div class="piBody">
           <div class="piTop">
             <div class="piTitleRow"><span class="piTitle">${escapeHtml(title)}</span></div>
-            <span class="piDate">${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span>
             <span class="piDeleteBtn" data-id="${n.id}" title="削除">×</span>
           </div>
           ${sub ? `<div class="piSub">${escapeHtml(sub)}</div>` : ''}
+          <div class="piMeta"><span class="piDate">${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span></div>
         </div>
       </div>
     `;
@@ -1815,8 +1844,13 @@ function renderPoolNoteList(catId){
   poolNoteListEl.querySelectorAll('.poolItem .piBody').forEach(el => {
     el.addEventListener('click', (e) => {
       if(e.target.closest('.piDeleteBtn')) return; // 削除ボタンは別ハンドラ
-      const id = el.closest('.poolItem').dataset.id;
-      poolOverlayEl.classList.remove('open');
+      const item = el.closest('.poolItem');
+      const id = item.dataset.id;
+      if(poolNoteListEl.classList.contains('selectMode')){
+        const cb = item.querySelector('.piCheck');
+        if(cb) cb.classList.toggle('checked');
+        return;
+      }
       openReadView(id);
     });
   });
@@ -1873,21 +1907,35 @@ function getSelectedPoolNotes(){
   return notes.filter(n => ids.includes(n.id));
 }
 
-$('poolBulkDeleteBtn').addEventListener('click', async () => {
-  const selected = getSelectedPoolNotes();
-  if(selected.length === 0) return;
-  if(!await customConfirm(`選んだ${selected.length}件を削除しますか？（ゴミ箱に移動します）`)) return;
-  selected.forEach(n => softDeleteNote(n.id));
-  requestSave();
-  renderPoolNoteList(openPoolId);
-  renderClassify();
-});
 
 $('poolSelectAll').addEventListener('click', (e) => {
   const nowChecked = !e.target.classList.contains('checked');
   e.target.classList.toggle('checked', nowChecked);
   poolNoteListEl.querySelectorAll('.piCheck').forEach(cb => cb.classList.toggle('checked', nowChecked));
 });
+
+function enterPoolSelectMode(){
+  poolNoteListEl.classList.add('selectMode');
+  $('poolSelectModeBtn').style.display = 'none';
+  $('poolSelectAllLabel').style.display = '';
+  $('poolCombineBtn').style.display = '';
+  $('poolMdBtn').style.display = '';
+  $('poolCopyBtn').style.display = '';
+  $('poolSelectDoneBtn').style.display = '';
+}
+function exitPoolSelectMode(){
+  poolNoteListEl.classList.remove('selectMode');
+  poolNoteListEl.querySelectorAll('.piCheck').forEach(cb => cb.classList.remove('checked'));
+  $('poolSelectAll').classList.remove('checked');
+  $('poolSelectModeBtn').style.display = '';
+  $('poolSelectAllLabel').style.display = 'none';
+  $('poolCombineBtn').style.display = 'none';
+  $('poolMdBtn').style.display = 'none';
+  $('poolCopyBtn').style.display = 'none';
+  $('poolSelectDoneBtn').style.display = 'none';
+}
+$('poolSelectModeBtn').addEventListener('click', enterPoolSelectMode);
+$('poolSelectDoneBtn').addEventListener('click', exitPoolSelectMode);
 
 $('poolMdBtn').addEventListener('click', () => {
   const selected = getSelectedPoolNotes();
@@ -1985,6 +2033,58 @@ trashToggleEl.addEventListener('click', () => {
   trashToggleEl.textContent = (open ? '▾ ゴミ箱' : '▸ ゴミ箱');
   if(open) renderTrash();
 });
+let openCategoryListId = undefined; // undefined=まだ何も開いていない, null=未分類, 'cat_xxx'=そのプール
+function renderCategoryLists(){
+  const container = $('categoryListsSection');
+  const sorted = sortedCategoriesForColor();
+  const rows = [
+    { id: null, name: '未分類', color: '#C7C3B8' },
+    ...sorted.map(c => ({ id: c.id, name: c.name, color: colorForCategory(c.id) })),
+  ];
+  container.innerHTML = rows.map(r => {
+    const isOpen = openCategoryListId === r.id;
+    const count = notes.filter(n => !n.deleted && (n.categoryId||null) === r.id).length;
+    return `
+      <div>
+        <div class="catListToggle" data-cat="${r.id===null?'':r.id}">
+          <span>${isOpen ? '▾' : '▸'}</span>
+          <span class="catDot" style="background:${r.color}"></span>
+          <span>${escapeHtml(r.name)}（${count}）</span>
+        </div>
+        <div class="catListBody ${isOpen ? 'open' : ''}" data-cat="${r.id===null?'':r.id}"></div>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.catListToggle').forEach(el => {
+    el.addEventListener('click', () => {
+      const raw = el.dataset.cat;
+      const id = raw === '' ? null : raw;
+      openCategoryListId = (openCategoryListId === id) ? undefined : id;
+      renderCategoryLists();
+    });
+  });
+
+  if(openCategoryListId !== undefined){
+    const body = container.querySelector(`.catListBody[data-cat="${openCategoryListId===null?'':openCategoryListId}"]`);
+    if(body) renderCategoryListBody(body, openCategoryListId);
+  }
+}
+function renderCategoryListBody(body, catId){
+  const items = notes.filter(n => !n.deleted && (n.categoryId||null) === catId).sort((a,b)=>(b.t||0)-(a.t||0));
+  if(items.length === 0){
+    body.innerHTML = '<div class="catListEmpty">まだメモがありません</div>';
+    return;
+  }
+  body.innerHTML = items.map(n => {
+    const { title } = preview(n);
+    return `<div class="catListItem" data-id="${n.id}"><span class="cliTitle">${escapeHtml(title)}</span><span class="cliDate">${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span></div>`;
+  }).join('');
+  body.querySelectorAll('.catListItem').forEach(el => {
+    el.addEventListener('click', () => openReadView(el.dataset.id));
+  });
+}
+
 function renderTrash(){
   const deletedNotes = notes.filter(n => n.deleted).sort((a,b) => new Date(b.deletedAt||0) - new Date(a.deletedAt||0));
   $('trashEmpty').style.display = deletedNotes.length ? 'none' : 'block';
