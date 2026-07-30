@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H°me — 楽器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBFAF8; --surface:#FFFFFF; --border:#EAE7E1;
+    --ink:#2C2E31; --dim:#8E8B82; --accent:#6E9BB8;
+    --mono:'JetBrains Mono',monospace;
+    --ui:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    height:100vh;gap:22px;text-align:center;padding:20px;
+  }
+  a#backLink{
+    position:fixed;top:18px;left:20px;
+    font-family:var(--mono);font-size:11px;color:var(--dim);text-decoration:none;
+    border:1px solid var(--border);border-radius:6px;padding:5px 12px;
+  }
+  a#backLink:hover{color:var(--ink);border-color:var(--accent);background:var(--surface)}
+  .note{font-family:var(--mono);font-size:12px;color:var(--dim);max-width:340px;line-height:1.8}
+</style>
+</head>
+<body>
+
+<a id="backLink" href="index.html">← 泡</a>
+
+<svg width="220" height="140" viewBox="0 0 220 140">
+  <g stroke="var(--border)" stroke-width="1">
+    <line x1="20" y1="40" x2="200" y2="40"/>
+    <line x1="20" y1="55" x2="200" y2="55"/>
+    <line x1="20" y1="70" x2="200" y2="70"/>
+    <line x1="20" y1="85" x2="200" y2="85"/>
+    <line x1="20" y1="100" x2="200" y2="100"/>
+  </g>
+  <circle cx="55"  cy="70" r="6" fill="#A8757F"/>
+  <circle cx="95"  cy="55" r="6" fill="#6E828C"/>
+  <circle cx="135" cy="85" r="6" fill="#7C8A6E"/>
+  <circle cx="170" cy="40" r="6" fill="#8C7A5C"/>
+</svg>
+
+<div>
+  <div style="font-size:14px;font-weight:500;margin-bottom:6px">楽器（準備中）</div>
+  <div class="note">〇を使った、複数のミニゲームをここに並べていく予定です。<br>まずは全体の構想を整理してから、少しずつ形にしていきます。</div>
+</div>
+
+</body>
+</html>
