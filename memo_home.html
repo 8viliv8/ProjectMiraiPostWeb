@@ -539,14 +539,11 @@
   .catListToggle .catDot{width:7px;height:7px;border-radius:50%;flex:none}
   .catListBody{display:none;margin:0 0 4px 0}
   .catListBody.open{display:block}
-  .catListItem{
-    display:flex;align-items:center;justify-content:space-between;gap:10px;
-    padding:10px 4px;border-bottom:1px solid var(--border);cursor:pointer;
-  }
-  .catListItem:hover{background:var(--surface)}
-  .catListItem .cliTitle{font-size:13px;color:var(--ink)}
-  .catListItem .cliDate{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap;flex:none}
   .catListEmpty{font-size:12px;color:var(--dim);padding:14px 4px;text-align:center}
+  .catListBody.open{
+    display:flex;flex-direction:column;gap:1px;background:var(--border);
+    border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px;
+  }
   .trashItem{
     display:flex;justify-content:space-between;align-items:center;gap:10px;
     padding:8px 0;border-bottom:1px solid var(--border);
@@ -660,7 +657,7 @@
       <div id="structuredFields"></div>
 
       <div class="foot">
-        <span id="footHint">⏎改行/保存タップ・他をタップで保存</span>
+        <span id="footHint">⏎改行/右上の保存ボタン・ボックス外タップで保存</span>
         <div style="display:flex;align-items:center;gap:10px">
           <span class="qtag" id="poolTag" style="padding:3px 10px;font-size:10px"><i style="background:#C7C3B8"></i><span id="poolTagText">未分類</span></span>
           <span id="cardDelete">削除</span>
@@ -759,6 +756,7 @@
     <input type="text" id="dialogInput" style="display:none">
     <div id="dialogActions">
       <button id="dialogCancel">キャンセル</button>
+      <button id="dialogAlt" style="display:none">未分類へ</button>
       <button id="dialogOk">OK</button>
     </div>
   </div>
@@ -851,6 +849,31 @@ function showDialog({ message, withInput = false, defaultValue = '' }){
 }
 function customConfirm(message){ return showDialog({ message }); }
 function customPrompt(message, defaultValue=''){ return showDialog({ message, withInput:true, defaultValue }); }
+function customChoice3(message, altLabel, okLabel){
+  return new Promise((resolve) => {
+    dialogMessage.textContent = message;
+    dialogInput.style.display = 'none';
+    $('dialogAlt').style.display = 'inline';
+    $('dialogAlt').textContent = altLabel;
+    dialogOk.textContent = okLabel;
+    dialogOverlay.classList.add('open');
+    function cleanup(result){
+      dialogOverlay.classList.remove('open');
+      dialogOk.removeEventListener('click', onOk);
+      dialogCancel.removeEventListener('click', onCancel);
+      $('dialogAlt').removeEventListener('click', onAlt);
+      $('dialogAlt').style.display = 'none';
+      dialogOk.textContent = 'OK';
+      resolve(result);
+    }
+    function onOk(){ cleanup('ok'); }
+    function onAlt(){ cleanup('alt'); }
+    function onCancel(){ cleanup('cancel'); }
+    dialogOk.addEventListener('click', onOk);
+    $('dialogAlt').addEventListener('click', onAlt);
+    dialogCancel.addEventListener('click', onCancel);
+  });
+}
 const listEl = $('list'), emptyEl = $('empty');
 const noteCircleEl = $('noteCircle');
 const btnSignIn = $('btnSignIn'), authWho = $('authWho');
@@ -977,6 +1000,37 @@ function matchesSearch(n){
   return haystack.includes(searchQuery);
 }
 
+function createNoteCard(n){
+  const poolColor = n.categoryId ? colorForCategory(n.categoryId) : '#C7C3B8';
+  const { title, sub } = preview(n);
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.id = n.id;
+  card.innerHTML = `
+    <div class="row1">
+      <div class="left"><div class="title">${escapeHtml(title)}</div></div>
+      <div class="rowActions">
+        <div class="qtagView"><i style="background:${poolColor}"></i>${escapeHtml(poolLabelForNote(n))}</div>
+        <span class="cardDeleteBtn" data-id="${n.id}" title="削除">×</span>
+      </div>
+    </div>
+    ${sub ? `<div class="sub">${escapeHtml(sub)}</div>` : ''}
+    <div class="meta"><span>${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span></div>
+  `;
+  card.addEventListener('click', (e) => {
+    if(e.target.closest('.cardDeleteBtn')) return; // 削除ボタンは別ハンドラ
+    openReadView(n.id);
+  });
+  card.querySelector('.cardDeleteBtn').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if(!await customConfirm('このメモを削除しますか？')) return;
+    softDeleteNote(n.id);
+    requestSave();
+    render();
+  });
+  return card;
+}
+
 function render(){
   listEl.innerHTML = '';
   const sorted = [...notes]
@@ -987,39 +1041,10 @@ function render(){
   emptyEl.style.display = sorted.length ? 'none' : 'block';
 
   for(const n of sorted){
-    const poolColor = n.categoryId ? colorForCategory(n.categoryId) : '#C7C3B8';
-    const { title, sub } = preview(n);
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.dataset.id = n.id;
-    card.innerHTML = `
-      <div class="row1">
-        <div class="left"><div class="title">${escapeHtml(title)}</div></div>
-        <div class="rowActions">
-          <div class="qtagView"><i style="background:${poolColor}"></i>${escapeHtml(poolLabelForNote(n))}</div>
-          <span class="cardDeleteBtn" data-id="${n.id}" title="削除">×</span>
-        </div>
-      </div>
-      ${sub ? `<div class="sub">${escapeHtml(sub)}</div>` : ''}
-      <div class="meta"><span>${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span></div>
-    `;
-    card.addEventListener('click', (e) => {
-      if(e.target.closest('.cardDeleteBtn')) return; // 削除ボタンは別ハンドラ
-      openReadView(n.id);
-    });
-    listEl.appendChild(card);
+    listEl.appendChild(createNoteCard(n));
   }
 
-  listEl.querySelectorAll('.cardDeleteBtn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.id;
-      if(!await customConfirm('このメモを削除しますか？')) return;
-      softDeleteNote(id);
-      requestSave();
-      render();
-    });
-  });
+
   renderClassify();
   renderCategoryLists();
 }
@@ -1418,6 +1443,13 @@ inputCard.addEventListener('focusout', () => {
       addMemo();
     }
   }, 0);
+});
+
+document.addEventListener('click', (e) => {
+  // カードの外（フォーカスの有無を問わず）をタップしたら保存する
+  if(inputCard.contains(e.target)) return;
+  if(qmenu.contains(e.target) || dialogOverlay.contains(e.target)) return;
+  addMemo();
 });
 
 function autoGrow(){
@@ -2004,13 +2036,18 @@ poolOverlayEl.addEventListener('click', (e) => {
 $('poolDeleteBtn').addEventListener('click', async () => {
   const cat = categories.find(c => c.id === openPoolId);
   if(!cat) return;
-  if(!await customConfirm(`「${cat.name}」を削除しますか？（中のメモは未分類プールに戻ります）`)) return;
-  notes.forEach(n => { if(n.categoryId === cat.id) n.categoryId = null; });
+  const choice = await customChoice3(`「${cat.name}」を削除します。中のメモをどうしますか？`, '未分類へ', 'ゴミ箱へ');
+  if(choice === 'cancel') return;
+  if(choice === 'alt'){
+    notes.forEach(n => { if(n.categoryId === cat.id) n.categoryId = null; });
+  } else {
+    notes.forEach(n => { if(n.categoryId === cat.id) softDeleteNote(n.id); });
+  }
   categories = categories.filter(c => c.id !== cat.id);
   requestSave();
   poolOverlayEl.classList.remove('open');
   openPoolId = null;
-  renderClassify();
+  render();
 });
 
 $('btnAddCategory').addEventListener('click', async () => {
@@ -2072,17 +2109,14 @@ function renderCategoryLists(){
 }
 function renderCategoryListBody(body, catId){
   const items = notes.filter(n => !n.deleted && (n.categoryId||null) === catId).sort((a,b)=>(b.t||0)-(a.t||0));
+  body.innerHTML = '';
   if(items.length === 0){
     body.innerHTML = '<div class="catListEmpty">まだメモがありません</div>';
     return;
   }
-  body.innerHTML = items.map(n => {
-    const { title } = preview(n);
-    return `<div class="catListItem" data-id="${n.id}"><span class="cliTitle">${escapeHtml(title)}</span><span class="cliDate">${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span></div>`;
-  }).join('');
-  body.querySelectorAll('.catListItem').forEach(el => {
-    el.addEventListener('click', () => openReadView(el.dataset.id));
-  });
+  for(const n of items){
+    body.appendChild(createNoteCard(n));
+  }
 }
 
 function renderTrash(){
