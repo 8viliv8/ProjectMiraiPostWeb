@@ -145,6 +145,8 @@
   #memoTitleInput::placeholder{color:#B4B0A6;font-weight:400}
   #memoBodyWrap{display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
   #defaultSplit.revealed #memoBodyWrap{display:block}
+  #defaultSplit.plainMode #memoTitleInput{display:none}
+  #defaultSplit.plainMode #memoBodyWrap{margin-top:0;padding-top:0;border-top:none}
   #inputCard textarea{
     width:100%;box-sizing:border-box;background:transparent;border:none;outline:none;resize:none;
     color:var(--ink);font-family:var(--mono);font-size:13px;line-height:1.7;
@@ -699,8 +701,8 @@
       <span class="qtag" id="rvPoolTag" style="padding:3px 10px;font-size:10px"><i></i><span id="rvPoolTagText">未分類</span></span>
       <div style="display:flex;gap:14px;align-items:center;margin-left:auto">
         <span id="readViewEditBtn">編集</span>
-        <span id="readViewCloseBtn">閉じる</span>
         <span id="readViewDeleteBtn" style="margin-left:22px">削除</span>
+        <span id="readViewCloseBtn" style="margin-left:22px">閉じる</span>
       </div>
     </div>
     <div id="readViewBody"></div>
@@ -1285,7 +1287,8 @@ function addMemo(){
     inputCard.classList.remove('expanded','collapsed');
     document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
     $('memoBodyWrap').style.display = '';
-    $('defaultSplit').classList.remove('revealed');
+    $('defaultSplit').classList.remove('revealed', 'plainMode');
+    memoInput.placeholder = '';
     resetPoolPicker(null);
     autoGrow();
     render();
@@ -1388,15 +1391,17 @@ function toggleTemplate(key){
   activeTemplate = key;
   document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
   dotEl.classList.add('active');
-  $('defaultSplit').classList.add('revealed'); // どのテンプレートを選んでも、境界線から下は開く
   if(key === 'plain'){
-    // 「なにもない」：本文欄はそのまま（自動「・」は付けない）、構造化フィールドは使わない
-    $('memoBodyWrap').style.display = '';
+    // 「なにもない」：タイトル欄・境界線ごと隠し、ひとつの欄だけで自由に書けるようにする
+    $('defaultSplit').classList.add('plainMode', 'revealed');
+    memoInput.placeholder = '思いついたことを、そのままに。';
     structuredFieldsEl.innerHTML = '';
     inputCard.classList.remove('expanded');
     expanded = false;
   } else {
     // アイデア／todo：本文欄を隠し、代わりにテンプレート自身の項目を表示
+    $('defaultSplit').classList.remove('plainMode');
+    $('defaultSplit').classList.add('revealed');
     $('memoBodyWrap').style.display = 'none';
     expanded = true; collapsed = false;
     inputCard.classList.add('expanded');
@@ -1414,6 +1419,8 @@ function closeTemplate(){
   document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
   structuredFieldsEl.innerHTML = '';
   $('memoBodyWrap').style.display = '';
+  $('defaultSplit').classList.remove('plainMode');
+  memoInput.placeholder = '';
   updateSplitRevealState();
 }
 
@@ -1583,10 +1590,13 @@ function openCardForEdit(id){
     expanded = false; inputCard.classList.remove('expanded');
     structuredFieldsEl.innerHTML = '';
     $('memoBodyWrap').style.display = '';
+    $('defaultSplit').classList.add('plainMode');
+    memoInput.placeholder = '思いついたことを、そのままに。';
     const dotEl = $('dotPlain');
     if(dotEl) dotEl.classList.add('active');
   } else if(activeTemplate){
     expanded = true; inputCard.classList.add('expanded');
+    $('defaultSplit').classList.remove('plainMode');
     $('memoBodyWrap').style.display = 'none';
     const dotEl = {idea:$('dotIdea'), list:$('dotList')}[activeTemplate];
     if(dotEl) dotEl.classList.add('active');
@@ -1595,6 +1605,8 @@ function openCardForEdit(id){
     expanded = false; inputCard.classList.remove('expanded');
     structuredFieldsEl.innerHTML = '';
     $('memoBodyWrap').style.display = '';
+    $('defaultSplit').classList.remove('plainMode');
+    memoInput.placeholder = '';
   }
   inputCard.classList.add('editing');
   resetPoolPicker(note);
@@ -1612,7 +1624,9 @@ function exitEditMode(){
   memoTitleInput.value = '';
   structuredFieldsEl.innerHTML = '';
   document.querySelectorAll('#inputCard .dot').forEach(d=>d.classList.remove('active'));
-  $('defaultSplit').classList.remove('hideTitle', 'revealed');
+  $('memoBodyWrap').style.display = '';
+  $('defaultSplit').classList.remove('revealed', 'plainMode');
+  memoInput.placeholder = '';
   resetPoolPicker(null);
   autoGrow();
 }
