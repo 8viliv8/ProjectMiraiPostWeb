@@ -712,6 +712,14 @@ function fmtDate(iso){
     return d.toISOString().slice(0,10).replace(/-/g,'.');
   }catch(e){ return ''; }
 }
+function fmtDateTime(iso){
+  try{
+    const d = new Date(iso);
+    const datePart = d.toISOString().slice(0,10).replace(/-/g,'.');
+    const timePart = String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0');
+    return `${datePart} ${timePart}`;
+  }catch(e){ return ''; }
+}
 
 function preview(n){
   if(n.title){
@@ -1406,9 +1414,11 @@ $('poolAutoBtnInline').addEventListener('click', (e) => {
 
 /* ---------- まとめてエクスポート（テンプレートの項目名をそのまま見出しに使う） ---------- */
 function noteToMarkdownSection(n){
+  const hasRealTitle = !!(n.title && n.title.trim());
   const { title } = preview(n);
-  const dateStr = fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''));
-  const lines = [`## ${title} (${dateStr})`];
+  const dateStr = fmtDateTime(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''));
+  const heading = hasRealTitle ? title : `メモ`;
+  const lines = [`## ${heading} (${dateStr})`];
   const tpl = TEMPLATES[n.type];
   if(tpl){
     for(const f of tpl.fields){
@@ -1418,6 +1428,7 @@ function noteToMarkdownSection(n){
     }
     if(n.text) lines.push('### メモ', n.text, '');
   } else if(n.text){
+    // タイトルが無く、見出し自体がこの本文の抜粋だった場合は、本文をここで一度だけ出す
     lines.push(n.text, '');
   }
   return lines.join('\n');
@@ -1464,8 +1475,10 @@ $('poolCombineBtn').addEventListener('click', () => {
   const selected = getSelectedPoolNotes();
   if(selected.length === 0) return;
   combinedBodyEl.innerHTML = selected.map(n => {
+    const hasRealTitle = !!(n.title && n.title.trim());
     const { title } = preview(n);
-    const dateStr = fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''));
+    const heading = hasRealTitle ? title : 'メモ';
+    const dateStr = fmtDateTime(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''));
     const tpl = TEMPLATES[n.type];
     let body = '';
     if(tpl){
@@ -1478,7 +1491,7 @@ $('poolCombineBtn').addEventListener('click', () => {
     } else if(n.text){
       body = `<p>${escapeHtml(n.text)}</p>`;
     }
-    return `<h2>${escapeHtml(title)}</h2><div class="cbDate">${dateStr}</div>${body}<hr>`;
+    return `<h2>${escapeHtml(heading)}</h2><div class="cbDate">${dateStr}</div>${body}<hr>`;
   }).join('');
   combinedOverlayEl.classList.add('open');
 });
