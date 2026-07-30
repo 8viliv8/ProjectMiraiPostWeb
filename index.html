@@ -283,8 +283,10 @@
   }
   #poolAutoBtnInline:hover{border-color:var(--accent)}
   #poolNoteList{padding:8px 16px 20px}
-  .poolItem{padding:12px 0;border-bottom:1px solid var(--border)}
+  .poolItem{padding:12px 0;border-bottom:1px solid var(--border);display:flex;gap:10px}
   .poolItem .piTop{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+  .poolItem .piTitleRow{display:flex;align-items:center;gap:7px}
+  .poolItem .piCircle{width:8px;height:8px;border-radius:50%;flex:none}
   .poolItem .piTitle{font-size:13px;color:var(--ink)}
   .poolItem .piDate{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap}
   .poolItem select{
@@ -305,9 +307,20 @@
     padding:4px 10px;cursor:pointer;color:var(--dim);
   }
   .exportBtn:hover{border-color:var(--accent);color:var(--ink)}
-  .poolItem{display:flex;gap:10px}
-  .poolItem .piCheck{margin-top:3px;flex:none}
+  .piCheck{
+    margin-top:3px;flex:none;width:14px;height:14px;
+    border:1.3px solid var(--border);border-radius:3px;
+    cursor:pointer;position:relative;background:#fff;display:inline-block;
+  }
+  .piCheck.checked{background:var(--accent);border-color:var(--accent)}
+  .piCheck.checked::after{
+    content:'';position:absolute;left:4px;top:1px;width:4px;height:8px;
+    border:solid #fff;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);
+  }
   .poolItem .piBody{flex:1}
+
+  .poolHeaderTitle{display:flex;align-items:center;gap:8px}
+  .poolHeaderCircle{width:9px;height:9px;border-radius:50%;flex:none}
 
   #combinedOverlay{
     position:fixed;inset:0;background:rgba(251,250,248,.85);
@@ -516,13 +529,14 @@
 <div id="poolOverlay">
   <div id="poolPanel">
     <div class="poolHeader">
+      <span id="poolHeaderCircle" class="poolHeaderCircle"></span>
       <input type="text" id="poolNameInput" placeholder="プール名">
       <span id="poolAutoBtn" style="display:none">自動振り分け</span>
       <span id="poolDeleteBtn">削除</span>
       <span id="poolCloseBtn">閉じる</span>
     </div>
     <div id="poolExportBar">
-      <label id="poolSelectAllLabel"><input type="checkbox" id="poolSelectAll"> 全選択</label>
+      <label id="poolSelectAllLabel"><span class="piCheck" id="poolSelectAll" style="margin-top:0"></span> 全選択</label>
       <span class="exportBtn" id="poolCombineBtn">1枚にまとめる</span>
       <span class="exportBtn" id="poolMdBtn">md化</span>
       <span class="exportBtn" id="poolCopyBtn">コピー</span>
@@ -1290,11 +1304,12 @@ const poolOverlayEl = $('poolOverlay'), poolNameInputEl = $('poolNameInput'), po
 let openPoolId = null;
 
 function openPoolDetail(catId){
-  $('poolSelectAll').checked = false;
+  $('poolSelectAll').classList.remove('checked');
   if(catId === null){
     openPoolId = null;
     poolNameInputEl.value = '未分類';
     poolNameInputEl.disabled = true;
+    $('poolHeaderCircle').style.background = '#C7C3B8';
     $('poolDeleteBtn').style.display = 'none';
     $('poolAutoBtn').style.display = 'inline';
     renderPoolNoteList(null);
@@ -1305,6 +1320,7 @@ function openPoolDetail(catId){
   if(!cat) return;
   openPoolId = catId;
   poolNameInputEl.disabled = false;
+  $('poolHeaderCircle').style.background = colorForCategory(catId);
   $('poolDeleteBtn').style.display = 'inline';
   $('poolAutoBtn').style.display = 'none';
   poolNameInputEl.value = cat.name;
@@ -1320,16 +1336,17 @@ function renderPoolNoteList(catId){
   }
   poolNoteListEl.innerHTML = items.map(n => {
     const { title } = preview(n);
+    const poolColor = catId ? colorForCategory(catId) : '#C7C3B8';
     const options = ['<option value="">— 移動先を選ぶ —</option>']
       .concat(catId !== null ? ['<option value="__NONE__">未分類へ</option>'] : [])
       .concat(categories.filter(c => c.id !== catId).map(c => `<option value="${c.id}">${escapeHtml(c.name)}へ</option>`))
       .join('');
     return `
       <div class="poolItem" data-id="${n.id}">
-        <input type="checkbox" class="piCheck" data-id="${n.id}">
+        <span class="piCheck" data-id="${n.id}"></span>
         <div class="piBody">
           <div class="piTop">
-            <span class="piTitle">${escapeHtml(title)}</span>
+            <div class="piTitleRow"><span class="piCircle" style="background:${poolColor}"></span><span class="piTitle">${escapeHtml(title)}</span></div>
             <span class="piDate">${fmtDate(n.createdAt || (n.t ? new Date(n.t).toISOString() : ''))}</span>
           </div>
           <select data-id="${n.id}">${options}</select>
@@ -1338,6 +1355,9 @@ function renderPoolNoteList(catId){
     `;
   }).join('');
 
+  poolNoteListEl.querySelectorAll('.piCheck').forEach(cb => {
+    cb.addEventListener('click', () => cb.classList.toggle('checked'));
+  });
   poolNoteListEl.querySelectorAll('.poolItem .piTitle').forEach(el => {
     el.style.cursor = 'pointer';
     el.addEventListener('click', () => {
@@ -1404,12 +1424,14 @@ function noteToMarkdownSection(n){
 }
 
 function getSelectedPoolNotes(){
-  const ids = Array.from(poolNoteListEl.querySelectorAll('.piCheck:checked')).map(el => el.dataset.id);
+  const ids = Array.from(poolNoteListEl.querySelectorAll('.piCheck.checked')).map(el => el.dataset.id);
   return notes.filter(n => ids.includes(n.id));
 }
 
-$('poolSelectAll').addEventListener('change', (e) => {
-  poolNoteListEl.querySelectorAll('.piCheck').forEach(cb => cb.checked = e.target.checked);
+$('poolSelectAll').addEventListener('click', (e) => {
+  const nowChecked = !e.target.classList.contains('checked');
+  e.target.classList.toggle('checked', nowChecked);
+  poolNoteListEl.querySelectorAll('.piCheck').forEach(cb => cb.classList.toggle('checked', nowChecked));
 });
 
 $('poolMdBtn').addEventListener('click', () => {
