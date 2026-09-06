@@ -9,18 +9,20 @@
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;background:#fff;color:#1d1d1f;-webkit-font-smoothing:antialiased}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Yu Gothic",sans-serif}
-main{min-height:100dvh;padding:calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 40px);background:#fff}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Yu Gothic",sans-serif;background:#fff}
+main{min-height:100vh;padding:calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 40px);background:#fff}
 .meta{height:22px;margin:0 0 14px;font-size:12px;line-height:22px;color:#9b9b9f;font-weight:400}
 textarea{
-  display:block;width:100%;min-height:calc(100dvh - 110px);margin:0;padding:0;border:0;outline:0;resize:none;overflow:hidden;
-  background:#fff;color:#1d1d1f;
+  display:block;width:100%;margin:0;padding:0;border:0;outline:0;resize:none;overflow:hidden;
+  background:transparent;color:#1d1d1f;
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Yu Gothic",sans-serif;
   font-size:17px;line-height:22px;font-weight:400;letter-spacing:0;
   caret-color:#1d1d1f;
   -webkit-text-size-adjust:100%;
   -webkit-appearance:none;appearance:none;
+  -webkit-touch-callout:none;
 }
+textarea:focus,textarea:active{background:transparent!important;outline:none!important;box-shadow:none!important}
 textarea::placeholder{color:#c7c7cc}
 @media (min-width:700px){main{max-width:700px;margin:0 auto;padding-left:28px;padding-right:28px}}
 </style>
@@ -37,17 +39,13 @@ const KEY='memo-v03-draft';
 date.textContent=new Intl.DateTimeFormat('ja-JP',{month:'long',day:'numeric',weekday:'short'}).format(new Date());
 note.value=localStorage.getItem(KEY)||'';
 
-/*
-  iOSでキーボードが開くと window.innerHeight が変化する。
-  そのたびにtextareaの高さを縮めると、Safariが入力欄を再描画して
-  一瞬黒くちらつくことがあるため、viewport resizeでは高さを触らない。
-  内容が増えた時だけscrollHeightに合わせて下方向へ伸ばす。
-*/
+/* iOSのキーボード表示で100dvh/innerHeightが変化すると、
+   textareaの矩形そのものが再合成される瞬間に灰色〜黒っぽく見えることがある。
+   そこで入力欄の基準高はページを開いた瞬間の高さで固定する。 */
+const baseEditorHeight=Math.max(220, window.innerHeight-110);
 function grow(){
-  const previous=note.style.height;
-  note.style.height='auto';
-  const target=Math.max(note.scrollHeight, document.documentElement.clientHeight-110);
-  note.style.height=target+'px';
+  note.style.height='1px';
+  note.style.height=Math.max(baseEditorHeight,note.scrollHeight)+'px';
 }
 
 note.addEventListener('input',()=>{
@@ -55,9 +53,7 @@ note.addEventListener('input',()=>{
   grow();
 });
 
-/* 初回だけ高さを決める。キーボード表示によるresizeでは再計算しない */
 grow();
-setTimeout(()=>note.focus({preventScroll:true}),100);
 </script>
 </body>
 </html>
