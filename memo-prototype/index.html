@@ -5,147 +5,288 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="note proto">
-<title>note — prototype</title>
-<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="memo">
+<title>memo — v0.2</title>
 <style>
 :root{
-  --bg:#fbfaf8;--paper:#fff;--ink:#222326;--muted:#8b8982;--line:#e9e6df;--accent:#6e9bb8;--soft:#f2f0eb;--danger:#b66d63;
+  --paper:#fff;
+  --ink:#171717;
+  --sub:#9a9a9a;
+  --line:#ededed;
+  --sheet:#f7f7f7;
   --ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif;
 }
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--ui)}
+html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:var(--ui);-webkit-font-smoothing:antialiased}
 button,input,textarea{font:inherit}
-button{cursor:pointer}
-.app{max-width:980px;margin:0 auto;min-height:100vh;display:grid;grid-template-columns:320px 1fr;background:var(--paper);box-shadow:0 0 0 1px rgba(0,0,0,.02)}
-.sidebar{border-right:1px solid var(--line);background:#f8f7f4;display:flex;flex-direction:column;min-height:100vh}
-.sideTop{padding:18px 16px 12px;position:sticky;top:0;background:rgba(248,247,244,.94);backdrop-filter:blur(10px);z-index:5}
-.brand{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.brand strong{font-size:18px;font-weight:650;letter-spacing:-.02em}
-.auth{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 11px;color:var(--muted);font-size:12px}
-.search{width:100%;border:1px solid var(--line);background:#fff;border-radius:11px;padding:10px 12px;outline:none;font-size:14px}
-.filters{display:flex;gap:7px;margin-top:10px;overflow:auto;padding-bottom:2px}
-.filter{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted);white-space:nowrap}
-.filter.active{border-color:var(--accent);color:var(--ink)}
-.list{padding:4px 8px 92px;overflow:auto}
-.noteItem{padding:12px 12px 11px;border-radius:12px;cursor:pointer;border:1px solid transparent;margin-bottom:3px}
-.noteItem:hover{background:#fff;border-color:var(--line)}
-.noteItem.active{background:#fff;border-color:#dedbd3;box-shadow:0 3px 14px rgba(40,40,35,.04)}
-.noteTitle{font-weight:620;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.notePreview{margin-top:4px;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.noteMeta{margin-top:7px;font-size:10.5px;color:#aaa69d;display:flex;gap:8px;align-items:center}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block}
-.fab{position:fixed;left:max(calc((100vw - 980px)/2 + 245px),245px);bottom:24px;width:48px;height:48px;border-radius:50%;border:none;background:var(--ink);color:#fff;font-size:28px;line-height:1;box-shadow:0 8px 24px rgba(0,0,0,.18)}
-.editor{min-height:100vh;display:flex;flex-direction:column;background:var(--paper)}
-.editorTop{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);z-index:4}
-.status{font-size:11px;color:var(--muted)}
-.actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
-.action{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:9px;padding:7px 9px;font-size:12px}
-.action:hover{border-color:#d3d0c8;color:var(--ink)}
-.action.primary{background:var(--ink);border-color:var(--ink);color:#fff}
-.action.todoOn{border-color:var(--accent);color:var(--ink);background:#f5fafc}
-.paper{width:min(720px,100%);margin:0 auto;padding:52px 54px 120px;flex:1}
-.titleInput{width:100%;border:none;outline:none;background:transparent;color:var(--ink);font-weight:700;font-size:25px;letter-spacing:-.03em;margin-bottom:22px;padding:0}
-.bodyInput{width:100%;min-height:62vh;border:none;outline:none;resize:none;background:transparent;color:var(--ink);font-size:18px;line-height:1.9;letter-spacing:.01em;padding:0;caret-color:var(--accent)}
-.bodyInput::placeholder,.titleInput::placeholder{color:#c5c1b8}
-.empty{margin:auto;text-align:center;color:var(--muted);padding:40px}.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:7px}
-.mobileBack{display:none;border:none;background:none;color:var(--accent);padding:4px 2px;font-size:14px}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(30px);opacity:0;background:#242528;color:#fff;border-radius:999px;padding:9px 14px;font-size:12px;transition:.2s;pointer-events:none;z-index:50}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-@media(max-width:720px){
-  .app{display:block;max-width:none;box-shadow:none}.sidebar{border:0;min-height:100vh}.editor{display:none}.app.editing .sidebar{display:none}.app.editing .editor{display:flex}.mobileBack{display:block}.paper{padding:38px 22px 110px}.titleInput{font-size:24px}.bodyInput{font-size:18px;line-height:1.9;min-height:68vh}.fab{left:auto;right:20px;bottom:calc(20px + env(safe-area-inset-bottom));}.editorTop{padding-top:calc(12px + env(safe-area-inset-top));gap:8px}.actions{gap:5px}.action{padding:7px 8px;font-size:11px}.sideTop{padding-top:calc(16px + env(safe-area-inset-top));}.toast{bottom:calc(24px + env(safe-area-inset-bottom));}
+button{border:0;background:none;color:inherit;padding:0}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid #bbb;outline-offset:2px}
+[hidden]{display:none!important}
+
+#app{min-height:100dvh;background:var(--paper)}
+.view{min-height:100dvh}
+
+/* editor */
+#editorView{display:flex;flex-direction:column}
+.editorTop{
+  height:62px;padding:env(safe-area-inset-top) 22px 0;
+  display:flex;align-items:flex-end;justify-content:space-between;flex:none;
+}
+.editorTop button{font-size:23px;line-height:1;color:#a6a6a6;width:36px;height:36px;display:grid;place-items:center}
+.editorTop .more{font-size:22px;letter-spacing:2px;padding-bottom:5px}
+.editorWrap{width:min(760px,100%);margin:0 auto;padding:42px 28px calc(120px + env(safe-area-inset-bottom));flex:1}
+.date{font-size:12px;letter-spacing:.03em;color:#aaa;margin-bottom:22px;user-select:none}
+#editor{
+  width:100%;min-height:62vh;border:0;resize:none;background:transparent;color:var(--ink);
+  font-size:19px;line-height:1.9;font-weight:400;letter-spacing:.01em;padding:0;margin:0;
+  caret-color:#222;overflow:hidden;
+}
+#editor::placeholder{color:#d5d5d5}
+.saveState{position:fixed;right:18px;bottom:calc(14px + env(safe-area-inset-bottom));font-size:10px;color:#c1c1c1;opacity:0;transition:opacity .25s;pointer-events:none}
+.saveState.show{opacity:1}
+
+/* list */
+#listView{background:#fff;padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+.listTop{position:sticky;top:0;z-index:4;background:rgba(255,255,255,.94);backdrop-filter:blur(18px);padding:calc(18px + env(safe-area-inset-top)) 24px 12px;border-bottom:1px solid transparent}
+.listHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.listHeader h1{font-size:30px;line-height:1;font-weight:650;letter-spacing:-.04em;margin:0}
+.listHeader button{font-size:13px;color:#969696;padding:8px 0}
+.searchWrap{position:relative}
+#search{width:100%;border:0;border-radius:12px;background:#f5f5f5;padding:11px 14px;font-size:15px;color:#222}
+#search::placeholder{color:#b6b6b6}
+#notes{padding:4px 24px 0}
+.noteRow{padding:20px 0 18px;border-bottom:1px solid var(--line);cursor:pointer}
+.noteDate{font-size:11px;color:#aaa;margin-bottom:7px}
+.noteTitle{font-size:17px;line-height:1.5;font-weight:560;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.notePreview{font-size:14px;line-height:1.55;color:#8f8f8f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty{padding:90px 0;text-align:center;color:#bbb;font-size:14px}
+.newBtn{position:fixed;right:22px;bottom:calc(22px + env(safe-area-inset-bottom));width:52px;height:52px;border-radius:50%;background:#171717;color:#fff;font-size:27px;line-height:1;box-shadow:0 8px 22px rgba(0,0,0,.13);z-index:6}
+
+/* menu */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.12);z-index:20;display:flex;align-items:flex-end;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom))}
+.sheet{width:min(520px,100%);background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.12)}
+.sheet button{display:block;width:100%;text-align:left;padding:16px 18px;border-bottom:1px solid #f0f0f0;font-size:16px}
+.sheet button:last-child{border-bottom:0}
+.sheet .muted{color:#777}
+.sheet .danger{color:#b44}
+.sheet .cancel{text-align:center;font-size:15px;color:#777}
+
+/* auth */
+#authPill{position:fixed;left:18px;bottom:calc(16px + env(safe-area-inset-bottom));font-size:10px;color:#c0c0c0;z-index:7}
+
+@media (min-width:800px){
+  #app{max-width:980px;margin:0 auto;border-left:1px solid #f4f4f4;border-right:1px solid #f4f4f4}
+  .editorWrap{padding-top:70px}
+  #editor{font-size:20px;line-height:1.95}
 }
 </style>
 </head>
 <body>
-<div class="app" id="app">
-  <aside class="sidebar">
-    <div class="sideTop">
-      <div class="brand"><strong>note.</strong><button class="auth" id="authBtn">Googleで同期</button></div>
-      <input class="search" id="search" placeholder="検索">
-      <div class="filters">
-        <button class="filter active" data-filter="all">すべて</button>
-        <button class="filter" data-filter="todo">ToDo</button>
-        <button class="filter" data-filter="pinned">ピン</button>
-      </div>
-    </div>
-    <div class="list" id="list"></div>
-    <button class="fab" id="newBtn" aria-label="新規メモ">＋</button>
-  </aside>
-
-  <main class="editor" id="editor">
+<div id="app">
+  <section id="editorView" class="view">
     <div class="editorTop">
-      <button class="mobileBack" id="backBtn">← 一覧</button>
-      <span class="status" id="status">未選択</span>
-      <div class="actions">
-        <button class="action" id="pinBtn">ピン</button>
-        <button class="action" id="todoBtn">ToDoにする</button>
-        <button class="action" id="mdBtn">.md</button>
-        <button class="action" id="melolyBtn">Melolyへ</button>
-        <button class="action" id="deleteBtn">削除</button>
-      </div>
+      <button id="backBtn" aria-label="一覧">‹</button>
+      <button id="moreBtn" class="more" aria-label="その他">•••</button>
     </div>
-    <div class="paper" id="paper">
-      <div class="empty" id="empty"><b>思いついたことを、そのまま。</b>左下の＋から書き始めます。</div>
-      <div id="form" hidden>
-        <input class="titleInput" id="title" placeholder="タイトル（なくてもOK）" autocomplete="off">
-        <textarea class="bodyInput" id="body" placeholder="ここに書く。分類はあとで。"></textarea>
+    <main class="editorWrap">
+      <div id="dateLabel" class="date"></div>
+      <textarea id="editor" spellcheck="false" autocapitalize="sentences" placeholder=""></textarea>
+    </main>
+    <div id="saveState" class="saveState">saved</div>
+  </section>
+
+  <section id="listView" class="view" hidden>
+    <div class="listTop">
+      <div class="listHeader">
+        <h1>notes</h1>
+        <button id="authBtn">同期</button>
       </div>
+      <div class="searchWrap"><input id="search" type="search" placeholder="検索" autocomplete="off"></div>
     </div>
-  </main>
+    <div id="notes"></div>
+    <button id="newBtn" class="newBtn" aria-label="新規メモ">＋</button>
+  </section>
 </div>
-<div class="toast" id="toast"></div>
+
+<div id="menu" class="scrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true">
+    <button id="todoBtn">ToDo にする</button>
+    <button id="melolyBtn">Meloly mini へ送る</button>
+    <button id="copyMdBtn">Markdown をコピー</button>
+    <button id="downloadMdBtn">Markdown を保存</button>
+    <button id="deleteBtn" class="danger">削除</button>
+    <button id="cancelBtn" class="cancel">閉じる</button>
+  </div>
+</div>
+
+<div id="authPill"></div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-const firebaseConfig={apiKey:'AIzaSyDYoZqDdhyS2q3GPmvdrfotJYxnsLydiQg',authDomain:'orbit-65a9b.firebaseapp.com',projectId:'orbit-65a9b',storageBucket:'orbit-65a9b.firebasestorage.app',messagingSenderId:'967386787141',appId:'1:967386787141:web:9a904e982e7daa44da622c'};
-const fbApp=initializeApp(firebaseConfig); const auth=getAuth(fbApp); let db;
-try{db=initializeFirestore(fbApp,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})});}catch(e){db=getFirestore(fbApp);}
+const firebaseConfig = {
+  apiKey: 'AIzaSyDYoZqDdhyS2q3GPmvdrfotJYxnsLydiQg',
+  authDomain: 'orbit-65a9b.firebaseapp.com',
+  projectId: 'orbit-65a9b',
+  storageBucket: 'orbit-65a9b.firebasestorage.app',
+  messagingSenderId: '967386787141',
+  appId: '1:967386787141:web:9a904e982e7daa44da622c'
+};
+const fb = initializeApp(firebaseConfig);
+const auth = getAuth(fb);
+const db = getFirestore(fb);
+const provider = new GoogleAuthProvider();
+let currentUser = null;
+let cloudTimer = null;
 
-const LS='notePrototypeV01';
-let notes=[]; let currentId=null; let currentUser=null; let filter='all'; let saveTimer=null; let cloudTimer=null; let dirty=false;
-const $=id=>document.getElementById(id);
-const els={app:$('app'),list:$('list'),search:$('search'),status:$('status'),empty:$('empty'),form:$('form'),title:$('title'),body:$('body'),auth:$('authBtn'),pin:$('pinBtn'),todo:$('todoBtn')};
+const $ = s => document.querySelector(s);
+const editorView = $('#editorView'), listView = $('#listView'), editor = $('#editor');
+const notesEl = $('#notes'), search = $('#search'), menu = $('#menu'), saveState = $('#saveState');
+const authBtn = $('#authBtn'), authPill = $('#authPill');
 
-function now(){return new Date().toISOString()}
-function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}
-function esc(s=''){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),1600)}
-function firstLine(n){return (n.title||n.body||'無題').trim().split(/\n/)[0].slice(0,60)||'無題'}
-function fmt(iso){if(!iso)return'';const d=new Date(iso),today=new Date();if(d.toDateString()===today.toDateString())return d.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});return d.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'});}
+const KEY = 'memoPrototypeV2';
+let state = loadLocal();
+let activeId = null;
+let saveTimer = null;
 
-function localLoad(){try{const x=JSON.parse(localStorage.getItem(LS)||'[]');if(Array.isArray(x))notes=x;}catch(e){notes=[]}}
-function localSave(){localStorage.setItem(LS,JSON.stringify(notes));dirty=true; scheduleCloud();}
-async function cloudLoad(){if(!currentUser)return;try{const s=await getDoc(doc(db,'users',currentUser.uid));const remote=s.exists()?s.data().notePrototypeV01:null;if(remote&&Array.isArray(remote.notes)){notes=remote.notes;localStorage.setItem(LS,JSON.stringify(notes));render();if(!currentId&&notes[0])openNote(notes[0].id,false);toast('同期しました');}else if(notes.length){await cloudSave();}}catch(e){console.error(e);toast('クラウド読込に失敗');}}
-async function cloudSave(){if(!currentUser||!dirty)return;dirty=false;try{await setDoc(doc(db,'users',currentUser.uid),{notePrototypeV01:{version:1,updatedAt:now(),notes}},{merge:true});els.status.textContent='保存済み';}catch(e){dirty=true;console.error(e);els.status.textContent='保存エラー';}}
-function scheduleCloud(){clearTimeout(cloudTimer);cloudTimer=setTimeout(cloudSave,700)}
+function nowISO(){ return new Date().toISOString(); }
+function uid(){ return (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2)); }
+function emptyState(){ return {notes:[], todos:[]}; }
+function loadLocal(){
+  try{ const v = JSON.parse(localStorage.getItem(KEY)); return v && Array.isArray(v.notes) ? v : emptyState(); }
+  catch(e){ return emptyState(); }
+}
+function persist(){
+  localStorage.setItem(KEY, JSON.stringify(state));
+  showSaved();
+  if(currentUser){ clearTimeout(cloudTimer); cloudTimer=setTimeout(saveCloud,650); }
+}
+async function saveCloud(){
+  if(!currentUser) return;
+  try{ await setDoc(doc(db,'users',currentUser.uid),{memoPrototypeV2:state},{merge:true}); }
+  catch(e){ console.warn('cloud save failed',e); }
+}
+async function loadCloud(){
+  if(!currentUser) return;
+  try{
+    const snap=await getDoc(doc(db,'users',currentUser.uid));
+    const cloud=snap.exists()?snap.data().memoPrototypeV2:null;
+    if(cloud && Array.isArray(cloud.notes)){
+      const map=new Map();
+      [...state.notes,...cloud.notes].forEach(n=>{ const old=map.get(n.id); if(!old || (n.updatedAt||'')>(old.updatedAt||'')) map.set(n.id,n); });
+      state.notes=[...map.values()];
+      state.todos=[...(cloud.todos||[]),...(state.todos||[])].filter((v,i,a)=>a.findIndex(x=>x.id===v.id)===i);
+      localStorage.setItem(KEY,JSON.stringify(state));
+    }else await saveCloud();
+  }catch(e){ console.warn('cloud load failed',e); }
+}
+function showSaved(){
+  saveState.classList.add('show');
+  clearTimeout(showSaved.t); showSaved.t=setTimeout(()=>saveState.classList.remove('show'),850);
+}
 
-function filtered(){const q=els.search.value.trim().toLowerCase();return notes.filter(n=>{if(filter==='todo'&&!n.todo)return false;if(filter==='pinned'&&!n.pinned)return false;if(!q)return true;return ((n.title||'')+'\n'+(n.body||'')).toLowerCase().includes(q)}).sort((a,b)=>(b.pinned-a.pinned)||new Date(b.updatedAt)-new Date(a.updatedAt));}
-function render(){const arr=filtered();els.list.innerHTML=arr.length?arr.map(n=>`<div class="noteItem ${n.id===currentId?'active':''}" data-id="${n.id}"><div class="noteTitle">${esc(firstLine(n))}</div><div class="notePreview">${esc((n.body||'').replace(/\n/g,' ').slice(0,90)||'　')}</div><div class="noteMeta">${n.todo?'<span class="dot"></span><span>ToDo</span>':''}${n.pinned?'<span>PIN</span>':''}<span>${fmt(n.updatedAt)}</span></div></div>`).join(''):'<div style="padding:28px 18px;color:var(--muted);font-size:13px">まだメモはありません。</div>';document.querySelectorAll('.noteItem').forEach(el=>el.onclick=()=>openNote(el.dataset.id));}
-function current(){return notes.find(n=>n.id===currentId)}
-function newNote(){const n={id:uid(),title:'',body:'',todo:false,pinned:false,createdAt:now(),updatedAt:now()};notes.unshift(n);localSave();openNote(n.id);setTimeout(()=>els.body.focus(),60)}
-function openNote(id,mobile=true){flushEditor();currentId=id;const n=current();if(!n)return;els.empty.hidden=true;els.form.hidden=false;els.title.value=n.title||'';els.body.value=n.body||'';els.pin.classList.toggle('todoOn',!!n.pinned);els.todo.classList.toggle('todoOn',!!n.todo);els.todo.textContent=n.todo?'ToDo解除':'ToDoにする';els.pin.textContent=n.pinned?'ピン解除':'ピン';els.status.textContent='保存済み';render();if(mobile&&innerWidth<=720)els.app.classList.add('editing');}
-function flushEditor(){if(!currentId)return;const n=current();if(!n)return;const title=els.title.value,body=els.body.value;if(n.title!==title||n.body!==body){n.title=title;n.body=body;n.updatedAt=now();localSave();render();}}
-function queueEditor(){els.status.textContent='保存中…';clearTimeout(saveTimer);saveTimer=setTimeout(()=>{flushEditor();els.status.textContent=currentUser?'保存済み':'この端末に保存';},250)}
-function deleteCurrent(){const n=current();if(!n)return;if(!confirm('このメモを削除しますか？'))return;notes=notes.filter(x=>x.id!==n.id);currentId=null;localSave();els.form.hidden=true;els.empty.hidden=false;els.status.textContent='未選択';render();if(innerWidth<=720)els.app.classList.remove('editing')}
-function downloadMd(){const n=current();if(!n)return;const title=firstLine(n);const body=`# ${title}\n\n${n.body||''}\n`;const blob=new Blob([body],{type:'text/markdown;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(title.replace(/[\\/:*?"<>|]/g,'_').slice(0,50)||'note')+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);}
-async function sendMeloly(){const n=current();if(!n)return;const text=[n.title,n.body].filter(Boolean).join('\n');try{await navigator.clipboard.writeText(text);toast('コピーしました。Meloly miniを開きます');}catch(e){}window.open('https://incandescent-vacherin-930df0.netlify.app/quickmemo.html','_blank','noopener');}
+function fmtDate(iso,long=false){
+  const d=new Date(iso||Date.now());
+  if(long) return new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'}).format(d);
+  return new Intl.DateTimeFormat('ja-JP',{month:'numeric',day:'numeric'}).format(d);
+}
+function firstLine(text){ return (text||'').split(/\n/).find(x=>x.trim())?.trim() || '無題'; }
+function preview(text){
+  const lines=(text||'').split(/\n/).map(x=>x.trim()).filter(Boolean);
+  return lines.slice(1).join(' ') || '';
+}
+function getActive(){ return state.notes.find(n=>n.id===activeId); }
+function makeNote(){
+  const n={id:uid(),text:'',createdAt:nowISO(),updatedAt:nowISO()};
+  state.notes.unshift(n); activeId=n.id; persist(); return n;
+}
+function resizeEditor(){ editor.style.height='auto'; editor.style.height=Math.max(window.innerHeight*.62,editor.scrollHeight+4)+'px'; }
 
-$('newBtn').onclick=newNote;$('backBtn').onclick=()=>{flushEditor();els.app.classList.remove('editing')};$('deleteBtn').onclick=deleteCurrent;$('mdBtn').onclick=downloadMd;$('melolyBtn').onclick=sendMeloly;
-els.title.addEventListener('input',queueEditor);els.body.addEventListener('input',queueEditor);els.search.addEventListener('input',render);
-els.pin.onclick=()=>{const n=current();if(!n)return;n.pinned=!n.pinned;n.updatedAt=now();localSave();openNote(n.id,false)};
-els.todo.onclick=()=>{const n=current();if(!n)return;n.todo=!n.todo;n.updatedAt=now();localSave();openNote(n.id,false)};
-document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));render()});
+function openEditor(id=null){
+  const n=id?state.notes.find(x=>x.id===id):makeNote();
+  if(!n) return;
+  activeId=n.id;
+  editor.value=n.text||'';
+  $('#dateLabel').textContent=fmtDate(n.createdAt,true);
+  listView.hidden=true; editorView.hidden=false;
+  resizeEditor();
+  setTimeout(()=>editor.focus({preventScroll:true}),80);
+}
+function openList(){
+  flushEditor();
+  const n=getActive();
+  if(n && !n.text.trim()) state.notes=state.notes.filter(x=>x.id!==n.id);
+  activeId=null; persist();
+  editorView.hidden=true; listView.hidden=false;
+  renderList();
+}
+function flushEditor(){
+  const n=getActive(); if(!n) return;
+  if(n.text!==editor.value){ n.text=editor.value; n.updatedAt=nowISO(); persist(); }
+}
+function scheduleSave(){
+  clearTimeout(saveTimer); saveTimer=setTimeout(flushEditor,280);
+}
+function renderList(){
+  const q=search.value.trim().toLowerCase();
+  const arr=[...state.notes].filter(n=>n.text.trim()).filter(n=>!q || n.text.toLowerCase().includes(q)).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''));
+  if(!arr.length){ notesEl.innerHTML='<div class="empty">まだ何もありません</div>'; return; }
+  notesEl.innerHTML=arr.map(n=>`<article class="noteRow" data-id="${n.id}"><div class="noteDate">${fmtDate(n.updatedAt)}</div><div class="noteTitle">${escapeHtml(firstLine(n.text))}</div>${preview(n.text)?`<div class="notePreview">${escapeHtml(preview(n.text))}</div>`:''}</article>`).join('');
+  notesEl.querySelectorAll('.noteRow').forEach(el=>el.addEventListener('click',()=>openEditor(el.dataset.id)));
+}
+function escapeHtml(s){ return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+function mdOf(n){
+  if(!n) return '';
+  const title=firstLine(n.text);
+  return `# ${title}\n\n${n.text.trim()}\n\n---\ncreated: ${n.createdAt}\nupdated: ${n.updatedAt}\n`;
+}
+
+editor.addEventListener('input',()=>{ resizeEditor(); scheduleSave(); });
+editor.addEventListener('blur',flushEditor);
+$('#backBtn').addEventListener('click',openList);
+$('#newBtn').addEventListener('click',()=>openEditor());
+search.addEventListener('input',renderList);
+$('#moreBtn').addEventListener('click',()=>{ flushEditor(); menu.hidden=false; });
+$('#cancelBtn').addEventListener('click',()=>menu.hidden=true);
+menu.addEventListener('click',e=>{ if(e.target===menu) menu.hidden=true; });
+
+$('#copyMdBtn').addEventListener('click',async()=>{ const n=getActive(); if(n) await navigator.clipboard.writeText(mdOf(n)); menu.hidden=true; });
+$('#downloadMdBtn').addEventListener('click',()=>{
+  const n=getActive(); if(!n) return;
+  const blob=new Blob([mdOf(n)],{type:'text/markdown;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=(firstLine(n.text).replace(/[\\/:*?"<>|]/g,'_').slice(0,40)||'memo')+'.md'; a.click(); URL.revokeObjectURL(a.href); menu.hidden=true;
+});
+$('#todoBtn').addEventListener('click',()=>{
+  const n=getActive(); if(!n || !n.text.trim()) return;
+  state.todos=state.todos||[]; if(!state.todos.some(t=>t.sourceNoteId===n.id)) state.todos.unshift({id:uid(),sourceNoteId:n.id,text:firstLine(n.text),done:false,createdAt:nowISO()});
+  persist(); menu.hidden=true;
+});
+$('#melolyBtn').addEventListener('click',async()=>{
+  const n=getActive(); if(!n || !n.text.trim()) return;
+  try{ await navigator.clipboard.writeText(n.text); }catch(e){}
+  window.open('https://incandescent-vacherin-930df0.netlify.app/quickmemo.html','_blank','noopener'); menu.hidden=true;
+});
+$('#deleteBtn').addEventListener('click',()=>{
+  if(!activeId) return; state.notes=state.notes.filter(n=>n.id!==activeId); persist(); menu.hidden=true; openList();
+});
+
+authBtn.addEventListener('click',async()=>{
+  if(currentUser) await signOut(auth); else await signInWithPopup(auth,provider).catch(()=>{});
+});
+onAuthStateChanged(auth,async user=>{
+  currentUser=user; authBtn.textContent=user?'同期中':'同期'; authPill.textContent=user?'cloud':'';
+  if(user){ await loadCloud(); if(!listView.hidden) renderList(); }
+});
+
 window.addEventListener('beforeunload',flushEditor);
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) flushEditor(); });
 
-async function login(){const provider=new GoogleAuthProvider();try{await signInWithPopup(auth,provider);}catch(e){console.warn(e);try{await signInWithRedirect(auth,provider)}catch(err){toast('ログインできませんでした')}}}
-els.auth.onclick=()=>currentUser?signOut(auth):login();
-getRedirectResult(auth).catch(()=>{});
-onAuthStateChanged(auth,async user=>{currentUser=user;els.auth.textContent=user?'同期中':'Googleで同期';if(user){els.auth.textContent=(user.displayName||'Google')+' ✓';await cloudLoad();}else{els.auth.textContent='Googleで同期';}});
-
-localLoad();render();if(notes[0])openNote(notes[0].id,false);
+// 起動時は「管理画面」ではなく、まず書く場所を開く。
+// 既存の空メモがあればそこへ、なければ新規作成。
+const recent=[...state.notes].sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))[0];
+if(recent && !recent.text.trim()) openEditor(recent.id); else openEditor();
 </script>
 </body>
 </html>
