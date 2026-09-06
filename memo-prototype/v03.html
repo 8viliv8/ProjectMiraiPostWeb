@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>memo v0.3</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#fff;color:#1d1d1f;-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Yu Gothic",sans-serif}
+main{min-height:100dvh;padding:calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 40px)}
+.meta{height:22px;margin:0 0 14px;font-size:12px;line-height:22px;color:#9b9b9f;font-weight:400}
+textarea{
+  display:block;width:100%;min-height:calc(100dvh - 110px);margin:0;padding:0;border:0;outline:0;resize:none;overflow:hidden;
+  background:#fff;color:#1d1d1f;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Yu Gothic",sans-serif;
+  font-size:17px;line-height:22px;font-weight:400;letter-spacing:0;
+  caret-color:#1d1d1f;
+  -webkit-text-size-adjust:100%;
+}
+textarea::placeholder{color:#c7c7cc}
+@media (min-width:700px){main{max-width:700px;margin:0 auto;padding-left:28px;padding-right:28px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="meta" id="date"></div>
+  <textarea id="note" enterkeyhint="enter" inputmode="text" autocapitalize="sentences" autocomplete="off" spellcheck="false" aria-label="メモ"></textarea>
+</main>
+<script>
+const note=document.getElementById('note');
+const date=document.getElementById('date');
+const KEY='memo-v03-draft';
+date.textContent=new Intl.DateTimeFormat('ja-JP',{month:'long',day:'numeric',weekday:'short'}).format(new Date());
+note.value=localStorage.getItem(KEY)||'';
+function resize(){note.style.height='auto';note.style.height=Math.max(window.innerHeight-110,note.scrollHeight)+'px'}
+note.addEventListener('input',()=>{localStorage.setItem(KEY,note.value);resize()});
+window.addEventListener('resize',resize);
+resize();
+setTimeout(()=>note.focus({preventScroll:true}),100);
+</script>
+</body>
+</html>
