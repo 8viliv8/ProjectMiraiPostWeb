@@ -14,7 +14,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans",
 button{font:inherit;border:0;background:none;color:inherit;padding:0}
 .view{position:fixed;inset:0;background:#000;transition:none}
 #listView{padding:calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 100px);overflow:auto;visibility:visible;opacity:1;pointer-events:auto}
-#editorView{padding:calc(env(safe-area-inset-top) + 22px) 18px calc(env(safe-area-inset-bottom) + 100px);overflow:auto;visibility:hidden;opacity:0;pointer-events:none;touch-action:pan-y}
+#editorView{padding:calc(env(safe-area-inset-top) + 22px) 18px calc(env(safe-area-inset-bottom) + 100px);overflow:auto;visibility:hidden;opacity:0;pointer-events:none}
 body.editing #listView{visibility:hidden;opacity:0;pointer-events:none}
 body.editing #editorView{visibility:visible;opacity:1;pointer-events:auto}
 .listHeader{margin-bottom:25px}.listHeader h1{margin:0;font-size:30px;line-height:1;font-weight:650;letter-spacing:-.035em}
@@ -35,8 +35,8 @@ body.editing #editorView{visibility:visible;opacity:1;pointer-events:auto}
 <div id="classify" aria-hidden="true"><div class="classifyPanel"><div class="classifyHint">これは何のメモ？</div><button class="kindBtn" data-kind="歌詞">歌詞</button><button class="kindBtn" data-kind="アイデア">アイデア</button><button class="kindBtn" data-kind="仕事">仕事</button><button class="kindBtn unclassified" data-kind="">未分類</button></div></div>
 <script>
 const KEY='memo-v05-notes';
-const notesEl=document.getElementById('notes'),note=document.getElementById('note'),newBtn=document.getElementById('newBtn'),backBtn=document.getElementById('backBtn'),editorView=document.getElementById('editorView'),classify=document.getElementById('classify');
-let notes=load(),activeId=null,touchX=0,touchY=0,tracking=false;
+const notesEl=document.getElementById('notes'),note=document.getElementById('note'),newBtn=document.getElementById('newBtn'),backBtn=document.getElementById('backBtn'),classify=document.getElementById('classify');
+let notes=load(),activeId=null,startX=0,startY=0,lastX=0,lastY=0,tracking=false;
 function load(){try{const v=JSON.parse(localStorage.getItem(KEY));return Array.isArray(v)?v:[]}catch(e){return []}}
 function save(){localStorage.setItem(KEY,JSON.stringify(notes))}
 function uid(){return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}
@@ -51,14 +51,18 @@ function makeNote(){const t=now(),n={id:uid(),text:'',kind:'',createdAt:t,update
 function openEditor(id,isNew){let n=notes.find(x=>x.id===id);if(!n)n=makeNote();activeId=n.id;note.textContent=n.text;document.body.classList.add('editing');void note.offsetHeight;if(isNew){note.focus({preventScroll:true});placeCaretEnd()}}
 function startNew(e){if(e){e.preventDefault();e.stopPropagation()}openEditor(null,true)}
 function flush(){if(!activeId)return;const n=notes.find(x=>x.id===activeId);if(!n)return;const text=cleanText();if(n.text!==text){n.text=text;n.updatedAt=now();save()}}
-function showClassify(){if(!activeId)return;flush();note.blur();classify.classList.add('show');classify.setAttribute('aria-hidden','false')}
+function showClassify(){if(!activeId||classify.classList.contains('show'))return;flush();note.blur();classify.classList.add('show');classify.setAttribute('aria-hidden','false')}
 function hideClassify(){classify.classList.remove('show');classify.setAttribute('aria-hidden','true')}
 function finishToList(kind){flush();const n=notes.find(x=>x.id===activeId);if(n){n.kind=kind;n.updatedAt=now()}if(n&&!n.text.trim())notes=notes.filter(x=>x.id!==activeId);save();hideClassify();activeId=null;document.body.classList.remove('editing');note.blur();renderList()}
 function backToList(e){if(e)e.preventDefault();finishToList(notes.find(x=>x.id===activeId)?.kind||'')}
 note.addEventListener('input',()=>{if(!activeId)return;const n=notes.find(x=>x.id===activeId);if(!n)return;n.text=cleanText();n.updatedAt=now();save()});
 newBtn.addEventListener('touchend',startNew,{passive:false});newBtn.addEventListener('click',e=>{if(!('ontouchstart' in window))startNew(e)});backBtn.addEventListener('touchend',backToList,{passive:false});backBtn.addEventListener('click',e=>{if(!('ontouchstart' in window))backToList(e)});
-editorView.addEventListener('touchstart',e=>{if(e.touches.length!==1||classify.classList.contains('show'))return;touchX=e.touches[0].clientX;touchY=e.touches[0].clientY;tracking=true},{passive:true});
-editorView.addEventListener('touchend',e=>{if(!tracking||!e.changedTouches.length)return;tracking=false;const dx=e.changedTouches[0].clientX-touchX,dy=e.changedTouches[0].clientY-touchY;if(dx>72&&Math.abs(dx)>Math.abs(dy)*1.35)showClassify()},{passive:true});
+
+document.addEventListener('touchstart',e=>{if(!document.body.classList.contains('editing')||classify.classList.contains('show')||e.touches.length!==1)return;const t=e.touches[0];startX=lastX=t.clientX;startY=lastY=t.clientY;tracking=true},{capture:true,passive:true});
+document.addEventListener('touchmove',e=>{if(!tracking||e.touches.length!==1)return;const t=e.touches[0];lastX=t.clientX;lastY=t.clientY;const dx=lastX-startX,dy=lastY-startY;if(dx>38&&Math.abs(dx)>Math.abs(dy)*1.15)e.preventDefault()},{capture:true,passive:false});
+document.addEventListener('touchend',e=>{if(!tracking)return;tracking=false;if(e.changedTouches.length){lastX=e.changedTouches[0].clientX;lastY=e.changedTouches[0].clientY}const dx=lastX-startX,dy=lastY-startY;if(dx>52&&Math.abs(dx)>Math.abs(dy)*1.15)showClassify()},{capture:true,passive:true});
+document.addEventListener('touchcancel',()=>{tracking=false},{capture:true,passive:true});
+
 document.querySelectorAll('.kindBtn').forEach(b=>b.addEventListener('click',()=>finishToList(b.dataset.kind)));
 classify.addEventListener('click',e=>{if(e.target===classify){hideClassify();note.focus({preventScroll:true})}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flush()});window.addEventListener('pagehide',flush);renderList();
