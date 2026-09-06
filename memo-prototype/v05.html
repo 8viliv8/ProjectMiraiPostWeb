@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>memo v0.5</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:#fff;color:#1d1d1f;-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Yu Gothic",sans-serif}
+button{font:inherit;border:0;background:none;color:inherit;padding:0}
+[hidden]{display:none!important}
+.view{min-height:100vh;background:#fff}
+
+/* editor — v0.4の入力感を維持 */
+#editorView{padding:calc(env(safe-area-inset-top) + 12px) 18px calc(env(safe-area-inset-bottom) + 40px)}
+.editorBar{height:34px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.backBtn{font-size:28px;line-height:1;color:#8e8e93;width:34px;height:34px;text-align:left}
+.moreBtn{font-size:21px;line-height:1;color:#8e8e93;width:34px;height:34px;text-align:right;letter-spacing:2px}
+.meta{height:22px;margin:0 0 14px;font-size:12px;line-height:22px;color:#9b9b9f;font-weight:400}
+#note{display:block;width:100%;min-height:70vh;margin:0;padding:0;border:0;outline:0;background:transparent;color:#1d1d1f;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Yu Gothic",sans-serif;font-size:17px;line-height:22px;font-weight:400;letter-spacing:0;caret-color:#1d1d1f;white-space:pre-wrap;word-break:break-word;-webkit-user-select:text;user-select:text;-webkit-text-size-adjust:100%}
+#note:empty::before{content:''}
+
+/* list */
+#listView{padding:calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 96px)}
+.listHeader{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px}
+.listHeader h1{margin:0;font-size:30px;line-height:1;font-weight:650;letter-spacing:-.035em}
+.count{font-size:12px;color:#a3a3a8;margin-bottom:2px}
+#notes{border-top:1px solid #efeff0}
+.noteRow{padding:18px 0 17px;border-bottom:1px solid #efeff0;cursor:pointer}
+.noteTitle{font-size:17px;line-height:22px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+.notePreview{font-size:14px;line-height:20px;color:#7e7e83;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+.noteDate{font-size:11px;line-height:16px;color:#ababaf;margin-top:7px}
+.empty{padding:80px 0;text-align:center;font-size:14px;color:#b0b0b4}
+.newBtn{position:fixed;right:20px;bottom:calc(env(safe-area-inset-bottom) + 22px);width:52px;height:52px;border-radius:50%;background:#1d1d1f;color:#fff;font-size:29px;line-height:50px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.14)}
+
+@media (min-width:700px){
+  #editorView,#listView{max-width:700px;margin:0 auto;padding-left:28px;padding-right:28px}
+  .newBtn{right:calc(50% - 330px)}
+}
+</style>
+</head>
+<body>
+<section id="listView" class="view">
+  <div class="listHeader">
+    <h1>メモ</h1>
+    <div class="count" id="count"></div>
+  </div>
+  <div id="notes"></div>
+  <button class="newBtn" id="newBtn" aria-label="新規メモ">＋</button>
+</section>
+
+<section id="editorView" class="view" hidden>
+  <div class="editorBar">
+    <button class="backBtn" id="backBtn" aria-label="一覧へ戻る">‹</button>
+    <button class="moreBtn" id="moreBtn" aria-label="その他">•••</button>
+  </div>
+  <div class="meta" id="date"></div>
+  <div id="note" contenteditable="true" role="textbox" aria-multiline="true" inputmode="text" autocapitalize="sentences" spellcheck="false" aria-label="メモ"></div>
+</section>
+
+<script>
+const KEY='memo-v05-notes';
+const listView=document.getElementById('listView');
+const editorView=document.getElementById('editorView');
+const notesEl=document.getElementById('notes');
+const countEl=document.getElementById('count');
+const note=document.getElementById('note');
+const dateEl=document.getElementById('date');
+const newBtn=document.getElementById('newBtn');
+const backBtn=document.getElementById('backBtn');
+const moreBtn=document.getElementById('moreBtn');
+
+let notes=load();
+let activeId=null;
+
+function load(){
+  try{
+    const v=JSON.parse(localStorage.getItem(KEY));
+    return Array.isArray(v)?v:[];
+  }catch(e){return []}
+}
+function save(){ localStorage.setItem(KEY,JSON.stringify(notes)); }
+function uid(){ return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function now(){ return new Date().toISOString(); }
+function cleanText(){ return note.innerText.replace(/\u00a0/g,' ').replace(/\n+$/,''); }
+function firstLine(text){
+  const line=(text||'').split(/\n/).find(v=>v.trim());
+  return line?line.trim():'新しいメモ';
+}
+function restText(text){
+  const lines=(text||'').split(/\n/);
+  const i=lines.findIndex(v=>v.trim());
+  if(i<0)return '';
+  return lines.slice(i+1).join('\n').trim();
+}
+function fmt(iso,long=false){
+  const d=new Date(iso);
+  return new Intl.DateTimeFormat('ja-JP',long?{year:'numeric',month:'long',day:'numeric',weekday:'short'}:{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(d);
+}
+function esc(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderList(){
+  const visible=[...notes].filter(n=>n.text.trim()).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
+  countEl.textContent=visible.length?`${visible.length}件`:'';
+  if(!visible.length){
+    notesEl.innerHTML='<div class="empty">まだ何もありません</div>';
+    return;
+  }
+  notesEl.innerHTML=visible.map(n=>{
+    const preview=restText(n.text);
+    return `<article class="noteRow" data-id="${n.id}">`+
+      `<div class="noteTitle">${esc(firstLine(n.text))}</div>`+
+      (preview?`<div class="notePreview">${esc(preview)}</div>`:'')+
+      `<div class="noteDate">${fmt(n.updatedAt)}</div>`+
+      `</article>`;
+  }).join('');
+  notesEl.querySelectorAll('.noteRow').forEach(el=>el.addEventListener('click',()=>openEditor(el.dataset.id,false)));
+}
+
+function openEditor(id,isNew){
+  let n=notes.find(x=>x.id===id);
+  if(!n){
+    const t=now();
+    n={id:uid(),text:'',createdAt:t,updatedAt:t};
+    notes.unshift(n); save();
+  }
+  activeId=n.id;
+  note.textContent=n.text;
+  dateEl.textContent=fmt(n.createdAt,true);
+  listView.hidden=true;
+  editorView.hidden=false;
+  if(isNew){
+    setTimeout(()=>{
+      note.focus({preventScroll:true});
+      const r=document.createRange();r.selectNodeContents(note);r.collapse(false);
+      const s=window.getSelection();s.removeAllRanges();s.addRange(r);
+    },80);
+  }
+}
+
+function flush(){
+  if(!activeId)return;
+  const n=notes.find(x=>x.id===activeId);
+  if(!n)return;
+  const text=cleanText();
+  if(n.text!==text){n.text=text;n.updatedAt=now();save();}
+}
+function backToList(){
+  flush();
+  const n=notes.find(x=>x.id===activeId);
+  if(n && !n.text.trim()) notes=notes.filter(x=>x.id!==activeId);
+  save();
+  activeId=null;
+  editorView.hidden=true;
+  listView.hidden=false;
+  renderList();
+}
+
+note.addEventListener('input',()=>{
+  if(!activeId)return;
+  const n=notes.find(x=>x.id===activeId); if(!n)return;
+  n.text=cleanText();n.updatedAt=now();save();
+});
+newBtn.addEventListener('click',()=>openEditor(null,true));
+backBtn.addEventListener('click',backToList);
+moreBtn.addEventListener('click',()=>{});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flush();});
+window.addEventListener('pagehide',flush);
+
+renderList();
+</script>
+</body>
+</html>
