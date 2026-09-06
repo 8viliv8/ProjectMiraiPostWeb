@@ -36,10 +36,27 @@ const date=document.getElementById('date');
 const KEY='memo-v03-draft';
 date.textContent=new Intl.DateTimeFormat('ja-JP',{month:'long',day:'numeric',weekday:'short'}).format(new Date());
 note.value=localStorage.getItem(KEY)||'';
-function resize(){note.style.height='auto';note.style.height=Math.max(window.innerHeight-110,note.scrollHeight)+'px'}
-note.addEventListener('input',()=>{localStorage.setItem(KEY,note.value);resize()});
-window.addEventListener('resize',resize);
-resize();
+
+/*
+  iOSでキーボードが開くと window.innerHeight が変化する。
+  そのたびにtextareaの高さを縮めると、Safariが入力欄を再描画して
+  一瞬黒くちらつくことがあるため、viewport resizeでは高さを触らない。
+  内容が増えた時だけscrollHeightに合わせて下方向へ伸ばす。
+*/
+function grow(){
+  const previous=note.style.height;
+  note.style.height='auto';
+  const target=Math.max(note.scrollHeight, document.documentElement.clientHeight-110);
+  note.style.height=target+'px';
+}
+
+note.addEventListener('input',()=>{
+  localStorage.setItem(KEY,note.value);
+  grow();
+});
+
+/* 初回だけ高さを決める。キーボード表示によるresizeでは再計算しない */
+grow();
 setTimeout(()=>note.focus({preventScroll:true}),100);
 </script>
 </body>
