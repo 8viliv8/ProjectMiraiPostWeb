@@ -7,10 +7,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>memo v0.3</title>
 <style>
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;background:#fff;color:#1d1d1f;-webkit-font-smoothing:antialiased}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Yu Gothic",sans-serif}
-main{min-height:100dvh;padding:calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 40px)}
+main{min-height:100dvh;padding:calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 40px);background:#fff}
 .meta{height:22px;margin:0 0 14px;font-size:12px;line-height:22px;color:#9b9b9f;font-weight:400}
 textarea{
   display:block;width:100%;min-height:calc(100dvh - 110px);margin:0;padding:0;border:0;outline:0;resize:none;overflow:hidden;
@@ -19,6 +19,7 @@ textarea{
   font-size:17px;line-height:22px;font-weight:400;letter-spacing:0;
   caret-color:#1d1d1f;
   -webkit-text-size-adjust:100%;
+  -webkit-appearance:none;appearance:none;
 }
 textarea::placeholder{color:#c7c7cc}
 @media (min-width:700px){main{max-width:700px;margin:0 auto;padding-left:28px;padding-right:28px}}
